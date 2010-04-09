@@ -1,5 +1,0 @@
-#summary Introduction page.
-
-= Introduction =
-
-This is a final project for Cornell Univserity's ECE 4760 [http://courses.cit.cornell.edu/ee476/ Design with Microcontrollers] class.
