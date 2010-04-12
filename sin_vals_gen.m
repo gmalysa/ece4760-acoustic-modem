@@ -33,4 +33,6 @@ for i = 0:255
     data(i+1, :) = floor(data(i+1, :) + 128);
 end
 
+data(data == 256) = 255;
+
 csvwrite('sin_vals.c', data, 5, 0);
