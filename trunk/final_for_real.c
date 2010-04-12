@@ -2,7 +2,7 @@
 **********	  Acoustic Modem 	************
 *******************************************/
 
-// Standard headers
+// Standard headers	
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -86,7 +86,7 @@ void init() {
 	/* Setup UART */
 	UCSR0B = _BV(RXEN0) | _BV(TXEN0);	// Enable receive and transmit
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);		// Set 8-bit frames
-	UBRR0 = 129;	// Set baud rate to 9600
+	UBRR0 = 520;	// Set baud rate to 2400
 
 	sei();
 	set_sleep_mode(SLEEP_MODE_IDLE);
