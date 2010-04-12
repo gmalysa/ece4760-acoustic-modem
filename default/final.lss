@@ -3,27 +3,27 @@ final.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000010  00800100  00004228  000042bc  2**0
+  0 .data         00000010  00800100  0000422a  000042be  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         00004228  00000000  00000000  00000094  2**1
+  1 .text         0000422a  00000000  00000000  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          0000000b  00800110  00800110  000042cc  2**0
+  2 .bss          0000000b  00800110  00800110  000042ce  2**0
                   ALLOC
-  3 .debug_aranges 00000020  00000000  00000000  000042cc  2**0
+  3 .debug_aranges 00000020  00000000  00000000  000042ce  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_pubnames 000000cb  00000000  00000000  000042ec  2**0
+  4 .debug_pubnames 000000cb  00000000  00000000  000042ee  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   0000026a  00000000  00000000  000043b7  2**0
+  5 .debug_info   0000026a  00000000  00000000  000043b9  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 00000172  00000000  00000000  00004621  2**0
+  6 .debug_abbrev 00000172  00000000  00000000  00004623  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   00000290  00000000  00000000  00004793  2**0
+  7 .debug_line   00000290  00000000  00000000  00004795  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  00000050  00000000  00000000  00004a24  2**2
+  8 .debug_frame  00000050  00000000  00000000  00004a28  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00000111  00000000  00000000  00004a74  2**0
+  9 .debug_str    00000111  00000000  00000000  00004a78  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    0000001e  00000000  00000000  00004b85  2**0
+ 10 .debug_loc    0000001e  00000000  00000000  00004b89  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -1096,7 +1096,7 @@ Disassembly of section .text:
     407c:	11 e0       	ldi	r17, 0x01	; 1
     407e:	a0 e0       	ldi	r26, 0x00	; 0
     4080:	b1 e0       	ldi	r27, 0x01	; 1
-    4082:	e8 e2       	ldi	r30, 0x28	; 40
+    4082:	ea e2       	ldi	r30, 0x2A	; 42
     4084:	f2 e4       	ldi	r31, 0x42	; 66
     4086:	02 c0       	rjmp	.+4      	; 0x408c <.do_copy_data_start>
 
@@ -1122,8 +1122,8 @@ Disassembly of section .text:
     409c:	ab 31       	cpi	r26, 0x1B	; 27
     409e:	b1 07       	cpc	r27, r17
     40a0:	e1 f7       	brne	.-8      	; 0x409a <.do_clear_bss_loop>
-    40a2:	0e 94 f5 20 	call	0x41ea	; 0x41ea <main>
-    40a6:	0c 94 12 21 	jmp	0x4224	; 0x4224 <_exit>
+    40a2:	0e 94 f6 20 	call	0x41ec	; 0x41ec <main>
+    40a6:	0c 94 13 21 	jmp	0x4226	; 0x4226 <_exit>
 
 000040aa <__bad_interrupt>:
     40aa:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
@@ -1319,98 +1319,98 @@ void init() {
 
 	/* Setup sampling timer */
 	TCCR1B = _BV(WGM12) | _BV(CS10);	// Clear on timer compare, no prescaling
-    41a2:	e1 e8       	ldi	r30, 0x81	; 129
-    41a4:	f0 e0       	ldi	r31, 0x00	; 0
-    41a6:	89 e0       	ldi	r24, 0x09	; 9
-    41a8:	80 83       	st	Z, r24
+    41a2:	89 e0       	ldi	r24, 0x09	; 9
+    41a4:	80 93 81 00 	sts	0x0081, r24
 	OCR1A = 500;				// Fire every 25us = 40000Hz (our sampling frequency)
-    41aa:	84 ef       	ldi	r24, 0xF4	; 244
-    41ac:	91 e0       	ldi	r25, 0x01	; 1
-    41ae:	90 93 89 00 	sts	0x0089, r25
-    41b2:	80 93 88 00 	sts	0x0088, r24
+    41a8:	84 ef       	ldi	r24, 0xF4	; 244
+    41aa:	91 e0       	ldi	r25, 0x01	; 1
+    41ac:	90 93 89 00 	sts	0x0089, r25
+    41b0:	80 93 88 00 	sts	0x0088, r24
 	OCR1B = 490;
-    41b6:	8a ee       	ldi	r24, 0xEA	; 234
-    41b8:	91 e0       	ldi	r25, 0x01	; 1
-    41ba:	90 93 8b 00 	sts	0x008B, r25
-    41be:	80 93 8a 00 	sts	0x008A, r24
+    41b4:	8a ee       	ldi	r24, 0xEA	; 234
+    41b6:	91 e0       	ldi	r25, 0x01	; 1
+    41b8:	90 93 8b 00 	sts	0x008B, r25
+    41bc:	80 93 8a 00 	sts	0x008A, r24
 	TIMSK1 = _BV(OCIE1A) | _BV(OCIE1B);		// Enable output compare A interrupt
-    41c2:	96 e0       	ldi	r25, 0x06	; 6
-    41c4:	90 93 6f 00 	sts	0x006F, r25
+    41c0:	96 e0       	ldi	r25, 0x06	; 6
+    41c2:	90 93 6f 00 	sts	0x006F, r25
 
 	/* Setup UART */
 	UCSR0B = _BV(RXEN0) | _BV(TXEN0);	// Enable receive and transmit
-    41c8:	88 e1       	ldi	r24, 0x18	; 24
-    41ca:	80 93 c1 00 	sts	0x00C1, r24
+    41c6:	88 e1       	ldi	r24, 0x18	; 24
+    41c8:	80 93 c1 00 	sts	0x00C1, r24
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);		// Set 8-bit frames
-    41ce:	90 93 c2 00 	sts	0x00C2, r25
-	UBRR0 = 129;	// Set baud rate to 9600
-    41d2:	f0 93 c5 00 	sts	0x00C5, r31
-    41d6:	e0 93 c4 00 	sts	0x00C4, r30
+    41cc:	90 93 c2 00 	sts	0x00C2, r25
+	UBRR0 = 520;	// Set baud rate to 2400
+    41d0:	88 e0       	ldi	r24, 0x08	; 8
+    41d2:	92 e0       	ldi	r25, 0x02	; 2
+    41d4:	90 93 c5 00 	sts	0x00C5, r25
+    41d8:	80 93 c4 00 	sts	0x00C4, r24
 
 	sei();
-    41da:	78 94       	sei
+    41dc:	78 94       	sei
 	set_sleep_mode(SLEEP_MODE_IDLE);
-    41dc:	83 b7       	in	r24, 0x33	; 51
-    41de:	81 7f       	andi	r24, 0xF1	; 241
-    41e0:	83 bf       	out	0x33, r24	; 51
+    41de:	83 b7       	in	r24, 0x33	; 51
+    41e0:	81 7f       	andi	r24, 0xF1	; 241
+    41e2:	83 bf       	out	0x33, r24	; 51
 	sleep_enable();
-    41e2:	83 b7       	in	r24, 0x33	; 51
-    41e4:	81 60       	ori	r24, 0x01	; 1
-    41e6:	83 bf       	out	0x33, r24	; 51
+    41e4:	83 b7       	in	r24, 0x33	; 51
+    41e6:	81 60       	ori	r24, 0x01	; 1
+    41e8:	83 bf       	out	0x33, r24	; 51
 }
-    41e8:	08 95       	ret
+    41ea:	08 95       	ret
 
-000041ea <main>:
+000041ec <main>:
 	sleep_cpu();
 	reti();
 }
 
 int main() {
 	init();
-    41ea:	0e 94 cd 20 	call	0x419a	; 0x419a <init>
-    41ee:	90 91 11 01 	lds	r25, 0x0111
+    41ec:	0e 94 cd 20 	call	0x419a	; 0x419a <init>
+    41f0:	90 91 11 01 	lds	r25, 0x0111
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
 			while(buffer_status[next_buffer] != IDLE) {;}
 			output_buffer[next_buffer] = UDR0;
 			UDR0 = output_buffer[next_buffer];
 			buffer_status[next_buffer] = START_BIT;	
-    41f2:	2f ef       	ldi	r18, 0xFF	; 255
+    41f4:	2f ef       	ldi	r18, 0xFF	; 255
 }
 
 int main() {
 	init();
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
-    41f4:	80 91 c0 00 	lds	r24, 0x00C0
-    41f8:	87 ff       	sbrs	r24, 7
-    41fa:	fc cf       	rjmp	.-8      	; 0x41f4 <main+0xa>
+    41f6:	80 91 c0 00 	lds	r24, 0x00C0
+    41fa:	87 ff       	sbrs	r24, 7
+    41fc:	fc cf       	rjmp	.-8      	; 0x41f6 <main+0xa>
 			while(buffer_status[next_buffer] != IDLE) {;}
-    41fc:	e9 2f       	mov	r30, r25
-    41fe:	f0 e0       	ldi	r31, 0x00	; 0
-    4200:	df 01       	movw	r26, r30
-    4202:	a0 50       	subi	r26, 0x00	; 0
-    4204:	bf 4f       	sbci	r27, 0xFF	; 255
-    4206:	8c 91       	ld	r24, X
-    4208:	8e 3f       	cpi	r24, 0xFE	; 254
-    420a:	e9 f7       	brne	.-6      	; 0x4206 <main+0x1c>
+    41fe:	e9 2f       	mov	r30, r25
+    4200:	f0 e0       	ldi	r31, 0x00	; 0
+    4202:	df 01       	movw	r26, r30
+    4204:	a0 50       	subi	r26, 0x00	; 0
+    4206:	bf 4f       	sbci	r27, 0xFF	; 255
+    4208:	8c 91       	ld	r24, X
+    420a:	8e 3f       	cpi	r24, 0xFE	; 254
+    420c:	e9 f7       	brne	.-6      	; 0x4208 <main+0x1c>
 			output_buffer[next_buffer] = UDR0;
-    420c:	80 91 c6 00 	lds	r24, 0x00C6
-    4210:	ed 5e       	subi	r30, 0xED	; 237
-    4212:	fe 4f       	sbci	r31, 0xFE	; 254
-    4214:	80 83       	st	Z, r24
+    420e:	80 91 c6 00 	lds	r24, 0x00C6
+    4212:	ed 5e       	subi	r30, 0xED	; 237
+    4214:	fe 4f       	sbci	r31, 0xFE	; 254
+    4216:	80 83       	st	Z, r24
 			UDR0 = output_buffer[next_buffer];
-    4216:	80 81       	ld	r24, Z
-    4218:	80 93 c6 00 	sts	0x00C6, r24
+    4218:	80 81       	ld	r24, Z
+    421a:	80 93 c6 00 	sts	0x00C6, r24
 			buffer_status[next_buffer] = START_BIT;	
-    421c:	2c 93       	st	X, r18
+    421e:	2c 93       	st	X, r18
 			next_buffer = (next_buffer + 1) & 0x7;
-    421e:	9f 5f       	subi	r25, 0xFF	; 255
-    4220:	97 70       	andi	r25, 0x07	; 7
-    4222:	e8 cf       	rjmp	.-48     	; 0x41f4 <main+0xa>
+    4220:	9f 5f       	subi	r25, 0xFF	; 255
+    4222:	97 70       	andi	r25, 0x07	; 7
+    4224:	e8 cf       	rjmp	.-48     	; 0x41f6 <main+0xa>
 
-00004224 <_exit>:
-    4224:	f8 94       	cli
+00004226 <_exit>:
+    4226:	f8 94       	cli
 
-00004226 <__stop_program>:
-    4226:	ff cf       	rjmp	.-2      	; 0x4226 <__stop_program>
+00004228 <__stop_program>:
+    4228:	ff cf       	rjmp	.-2      	; 0x4228 <__stop_program>
