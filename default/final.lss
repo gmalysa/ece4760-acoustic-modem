@@ -3,58 +3,60 @@ final.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         0000414e  00000000  00000000  00000074  2**1
+  0 .data         00000010  00800100  0000423a  000042ce  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  1 .text         0000423a  00000000  00000000  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .bss          00000003  00800100  00800100  000041c2  2**0
+  2 .bss          0000000e  00800110  00800110  000042de  2**0
                   ALLOC
-  2 .debug_aranges 00000020  00000000  00000000  000041c2  2**0
+  3 .debug_aranges 00000020  00000000  00000000  000042de  2**0
                   CONTENTS, READONLY, DEBUGGING
-  3 .debug_pubnames 00000081  00000000  00000000  000041e2  2**0
+  4 .debug_pubnames 000000de  00000000  00000000  000042fe  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_info   000001f6  00000000  00000000  00004263  2**0
+  5 .debug_info   00000279  00000000  00000000  000043dc  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 0000016f  00000000  00000000  00004459  2**0
+  6 .debug_abbrev 0000016f  00000000  00000000  00004655  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   0000021e  00000000  00000000  000045c8  2**0
+  7 .debug_line   00000298  00000000  00000000  000047c4  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_frame  00000050  00000000  00000000  000047e8  2**2
+  8 .debug_frame  00000050  00000000  00000000  00004a5c  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    000000e1  00000000  00000000  00004838  2**0
+  9 .debug_str    0000011a  00000000  00000000  00004aac  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    00000013  00000000  00000000  00004919  2**0
+ 10 .debug_loc    0000001e  00000000  00000000  00004bc6  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
 
 00000000 <__vectors>:
        0:	0c 94 38 20 	jmp	0x4070	; 0x4070 <__ctors_end>
-       4:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-       8:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-       c:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      10:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      14:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      18:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      1c:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      20:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      24:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      28:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      2c:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      30:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      34:	0c 94 4c 20 	jmp	0x4098	; 0x4098 <__vector_13>
-      38:	0c 94 6b 20 	jmp	0x40d6	; 0x40d6 <__vector_14>
-      3c:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      40:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      44:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      48:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      4c:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      50:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      54:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      58:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      5c:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      60:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      64:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      68:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
-      6c:	0c 94 4a 20 	jmp	0x4094	; 0x4094 <__bad_interrupt>
+       4:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+       8:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+       c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      10:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      14:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      18:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      1c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      20:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      24:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      28:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      2c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      30:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      34:	0c 94 57 20 	jmp	0x40ae	; 0x40ae <__vector_13>
+      38:	0c 94 d4 20 	jmp	0x41a8	; 0x41a8 <__vector_14>
+      3c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      40:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      44:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      48:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      4c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      50:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      54:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      58:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      5c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      60:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      64:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      68:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
+      6c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
 
 00000070 <freqBuffer>:
       70:	80 80 80 80 80 80 80 80 80 80 80 80 80 80 80 80     ................
@@ -1090,158 +1092,335 @@ Disassembly of section .text:
     4078:	de bf       	out	0x3e, r29	; 62
     407a:	cd bf       	out	0x3d, r28	; 61
 
-0000407c <__do_clear_bss>:
+0000407c <__do_copy_data>:
     407c:	11 e0       	ldi	r17, 0x01	; 1
     407e:	a0 e0       	ldi	r26, 0x00	; 0
     4080:	b1 e0       	ldi	r27, 0x01	; 1
-    4082:	01 c0       	rjmp	.+2      	; 0x4086 <.do_clear_bss_start>
+    4082:	ea e3       	ldi	r30, 0x3A	; 58
+    4084:	f2 e4       	ldi	r31, 0x42	; 66
+    4086:	02 c0       	rjmp	.+4      	; 0x408c <.do_copy_data_start>
 
-00004084 <.do_clear_bss_loop>:
-    4084:	1d 92       	st	X+, r1
+00004088 <.do_copy_data_loop>:
+    4088:	05 90       	lpm	r0, Z+
+    408a:	0d 92       	st	X+, r0
 
-00004086 <.do_clear_bss_start>:
-    4086:	a3 30       	cpi	r26, 0x03	; 3
-    4088:	b1 07       	cpc	r27, r17
-    408a:	e1 f7       	brne	.-8      	; 0x4084 <.do_clear_bss_loop>
-    408c:	0e 94 96 20 	call	0x412c	; 0x412c <main>
-    4090:	0c 94 a5 20 	jmp	0x414a	; 0x414a <_exit>
+0000408c <.do_copy_data_start>:
+    408c:	a0 31       	cpi	r26, 0x10	; 16
+    408e:	b1 07       	cpc	r27, r17
+    4090:	d9 f7       	brne	.-10     	; 0x4088 <.do_copy_data_loop>
 
-00004094 <__bad_interrupt>:
-    4094:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+00004092 <__do_clear_bss>:
+    4092:	11 e0       	ldi	r17, 0x01	; 1
+    4094:	a0 e1       	ldi	r26, 0x10	; 16
+    4096:	b1 e0       	ldi	r27, 0x01	; 1
+    4098:	01 c0       	rjmp	.+2      	; 0x409c <.do_clear_bss_start>
 
-00004098 <__vector_13>:
+0000409a <.do_clear_bss_loop>:
+    409a:	1d 92       	st	X+, r1
 
-uint8_t sample_num = 0;
-uint16_t freq_sum = 0; 
+0000409c <.do_clear_bss_start>:
+    409c:	ae 31       	cpi	r26, 0x1E	; 30
+    409e:	b1 07       	cpc	r27, r17
+    40a0:	e1 f7       	brne	.-8      	; 0x409a <.do_clear_bss_loop>
+    40a2:	0e 94 ff 20 	call	0x41fe	; 0x41fe <main>
+    40a6:	0c 94 1b 21 	jmp	0x4236	; 0x4236 <_exit>
+
+000040aa <__bad_interrupt>:
+    40aa:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+
+000040ae <__vector_13>:
+uint8_t output_bitpattern = 0;
+uint8_t i;
+uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b00010000, 0b00100000, 0b01000000, 0b10000000};
 void init();
 
 ISR(TIMER1_COMPA_vect) {
-    4098:	1f 92       	push	r1
-    409a:	0f 92       	push	r0
-    409c:	0f b6       	in	r0, 0x3f	; 63
-    409e:	0f 92       	push	r0
-    40a0:	11 24       	eor	r1, r1
-    40a2:	8f 93       	push	r24
-    40a4:	ef 93       	push	r30
-    40a6:	ff 93       	push	r31
+    40ae:	1f 92       	push	r1
+    40b0:	0f 92       	push	r0
+    40b2:	0f b6       	in	r0, 0x3f	; 63
+    40b4:	0f 92       	push	r0
+    40b6:	11 24       	eor	r1, r1
+    40b8:	0f 93       	push	r16
+    40ba:	1f 93       	push	r17
+    40bc:	2f 93       	push	r18
+    40be:	3f 93       	push	r19
+    40c0:	4f 93       	push	r20
+    40c2:	5f 93       	push	r21
+    40c4:	6f 93       	push	r22
+    40c6:	7f 93       	push	r23
+    40c8:	8f 93       	push	r24
+    40ca:	9f 93       	push	r25
+    40cc:	af 93       	push	r26
+    40ce:	bf 93       	push	r27
+    40d0:	cf 93       	push	r28
+    40d2:	df 93       	push	r29
+    40d4:	ef 93       	push	r30
+    40d6:	ff 93       	push	r31
 	PORTD = 0;
-    40a8:	1b b8       	out	0x0b, r1	; 11
-	PORTC = pgm_read_byte(freqBuffer[1] + sample_num);
-    40aa:	80 91 00 01 	lds	r24, 0x0100
-    40ae:	e8 2f       	mov	r30, r24
-    40b0:	f0 e0       	ldi	r31, 0x00	; 0
-    40b2:	e0 55       	subi	r30, 0x50	; 80
-    40b4:	ff 4f       	sbci	r31, 0xFF	; 255
-    40b6:	e4 91       	lpm	r30, Z+
-    40b8:	e8 b9       	out	0x08, r30	; 8
+    40d8:	1b b8       	out	0x0b, r1	; 11
+	PORTC = pgm_read_byte(freqBuffer[output_bitpattern] + sample_num);
+    40da:	80 91 10 01 	lds	r24, 0x0110
+    40de:	e0 91 14 01 	lds	r30, 0x0114
+    40e2:	f0 e0       	ldi	r31, 0x00	; 0
+    40e4:	96 e0       	ldi	r25, 0x06	; 6
+    40e6:	ee 0f       	add	r30, r30
+    40e8:	ff 1f       	adc	r31, r31
+    40ea:	9a 95       	dec	r25
+    40ec:	e1 f7       	brne	.-8      	; 0x40e6 <__vector_13+0x38>
+    40ee:	e8 0f       	add	r30, r24
+    40f0:	f1 1d       	adc	r31, r1
+    40f2:	e0 59       	subi	r30, 0x90	; 144
+    40f4:	ff 4f       	sbci	r31, 0xFF	; 255
+    40f6:	e4 91       	lpm	r30, Z+
+    40f8:	e8 b9       	out	0x08, r30	; 8
 	sample_num = (sample_num + 1) & 0x3f;
-    40ba:	8f 5f       	subi	r24, 0xFF	; 255
-    40bc:	8f 73       	andi	r24, 0x3F	; 63
-    40be:	80 93 00 01 	sts	0x0100, r24
+    40fa:	8f 5f       	subi	r24, 0xFF	; 255
+    40fc:	8f 73       	andi	r24, 0x3F	; 63
+    40fe:	80 93 10 01 	sts	0x0110, r24
 	PORTD = (1 << PB7);		
-    40c2:	80 e8       	ldi	r24, 0x80	; 128
-    40c4:	8b b9       	out	0x0b, r24	; 11
+    4102:	90 e8       	ldi	r25, 0x80	; 128
+    4104:	9b b9       	out	0x0b, r25	; 11
+	if(sample_num == 0) {
+    4106:	88 23       	and	r24, r24
+    4108:	d1 f5       	brne	.+116    	; 0x417e <__vector_13+0xd0>
+    410a:	60 e0       	ldi	r22, 0x00	; 0
+    410c:	30 e0       	ldi	r19, 0x00	; 0
+				++buffer_status[i];
+			}
+			else if(buffer_status[i] == STOP_BIT) {
+				buffer_status[i] = IDLE;
+			}
+			else if(bitmasks[7-buffer_status[i]] & output_buffer[i]) {
+    410e:	07 e0       	ldi	r16, 0x07	; 7
+    4110:	10 e0       	ldi	r17, 0x00	; 0
+			else if(buffer_status[i] == START_BIT) {
+				output_bitpattern |= bitmasks[i];
+				++buffer_status[i];
+			}
+			else if(buffer_status[i] == STOP_BIT) {
+				buffer_status[i] = IDLE;
+    4112:	7e ef       	ldi	r23, 0xFE	; 254
+    4114:	2e c0       	rjmp	.+92     	; 0x4172 <__vector_13+0xc4>
+	sample_num = (sample_num + 1) & 0x3f;
+	PORTD = (1 << PB7);		
+	if(sample_num == 0) {
+		output_bitpattern = 0;
+		for(i=0; i<8; ++i) {
+			if(buffer_status[i] == IDLE) {}
+    4116:	c3 2f       	mov	r28, r19
+    4118:	d0 e0       	ldi	r29, 0x00	; 0
+    411a:	ae 01       	movw	r20, r28
+    411c:	40 50       	subi	r20, 0x00	; 0
+    411e:	5f 4f       	sbci	r21, 0xFF	; 255
+    4120:	fa 01       	movw	r30, r20
+    4122:	20 81       	ld	r18, Z
+    4124:	2e 3f       	cpi	r18, 0xFE	; 254
+    4126:	21 f1       	breq	.+72     	; 0x4170 <__vector_13+0xc2>
+			else if(buffer_status[i] == START_BIT) {
+    4128:	2f 3f       	cpi	r18, 0xFF	; 255
+    412a:	31 f4       	brne	.+12     	; 0x4138 <__vector_13+0x8a>
+				output_bitpattern |= bitmasks[i];
+    412c:	c8 5f       	subi	r28, 0xF8	; 248
+    412e:	de 4f       	sbci	r29, 0xFE	; 254
+    4130:	88 81       	ld	r24, Y
+    4132:	68 2b       	or	r22, r24
+				++buffer_status[i];
+    4134:	10 82       	st	Z, r1
+    4136:	1c c0       	rjmp	.+56     	; 0x4170 <__vector_13+0xc2>
+			}
+			else if(buffer_status[i] == STOP_BIT) {
+    4138:	28 30       	cpi	r18, 0x08	; 8
+    413a:	19 f4       	brne	.+6      	; 0x4142 <__vector_13+0x94>
+				buffer_status[i] = IDLE;
+    413c:	fa 01       	movw	r30, r20
+    413e:	70 83       	st	Z, r23
+    4140:	17 c0       	rjmp	.+46     	; 0x4170 <__vector_13+0xc2>
+			}
+			else if(bitmasks[7-buffer_status[i]] & output_buffer[i]) {
+    4142:	82 2f       	mov	r24, r18
+    4144:	99 27       	eor	r25, r25
+    4146:	87 fd       	sbrc	r24, 7
+    4148:	90 95       	com	r25
+    414a:	f8 01       	movw	r30, r16
+    414c:	e8 1b       	sub	r30, r24
+    414e:	f9 0b       	sbc	r31, r25
+    4150:	e8 5f       	subi	r30, 0xF8	; 248
+    4152:	fe 4f       	sbci	r31, 0xFE	; 254
+    4154:	de 01       	movw	r26, r28
+    4156:	ab 5e       	subi	r26, 0xEB	; 235
+    4158:	be 4f       	sbci	r27, 0xFE	; 254
+    415a:	80 81       	ld	r24, Z
+    415c:	9c 91       	ld	r25, X
+    415e:	89 23       	and	r24, r25
+    4160:	39 f0       	breq	.+14     	; 0x4170 <__vector_13+0xc2>
+				output_bitpattern |= bitmasks[i];
+    4162:	c8 5f       	subi	r28, 0xF8	; 248
+    4164:	de 4f       	sbci	r29, 0xFE	; 254
+    4166:	88 81       	ld	r24, Y
+    4168:	68 2b       	or	r22, r24
+				++buffer_status[i];
+    416a:	2f 5f       	subi	r18, 0xFF	; 255
+    416c:	fa 01       	movw	r30, r20
+    416e:	20 83       	st	Z, r18
+    4170:	3f 5f       	subi	r19, 0xFF	; 255
+	PORTC = pgm_read_byte(freqBuffer[output_bitpattern] + sample_num);
+	sample_num = (sample_num + 1) & 0x3f;
+	PORTD = (1 << PB7);		
+	if(sample_num == 0) {
+		output_bitpattern = 0;
+		for(i=0; i<8; ++i) {
+    4172:	38 30       	cpi	r19, 0x08	; 8
+    4174:	80 f2       	brcs	.-96     	; 0x4116 <__vector_13+0x68>
+    4176:	60 93 14 01 	sts	0x0114, r22
+    417a:	30 93 1d 01 	sts	0x011D, r19
+				output_bitpattern |= bitmasks[i];
+				++buffer_status[i];
+			}
+		}
+	}
 }
-    40c6:	ff 91       	pop	r31
-    40c8:	ef 91       	pop	r30
-    40ca:	8f 91       	pop	r24
-    40cc:	0f 90       	pop	r0
-    40ce:	0f be       	out	0x3f, r0	; 63
-    40d0:	0f 90       	pop	r0
-    40d2:	1f 90       	pop	r1
-    40d4:	18 95       	reti
+    417e:	ff 91       	pop	r31
+    4180:	ef 91       	pop	r30
+    4182:	df 91       	pop	r29
+    4184:	cf 91       	pop	r28
+    4186:	bf 91       	pop	r27
+    4188:	af 91       	pop	r26
+    418a:	9f 91       	pop	r25
+    418c:	8f 91       	pop	r24
+    418e:	7f 91       	pop	r23
+    4190:	6f 91       	pop	r22
+    4192:	5f 91       	pop	r21
+    4194:	4f 91       	pop	r20
+    4196:	3f 91       	pop	r19
+    4198:	2f 91       	pop	r18
+    419a:	1f 91       	pop	r17
+    419c:	0f 91       	pop	r16
+    419e:	0f 90       	pop	r0
+    41a0:	0f be       	out	0x3f, r0	; 63
+    41a2:	0f 90       	pop	r0
+    41a4:	1f 90       	pop	r1
+    41a6:	18 95       	reti
 
-000040d6 <__vector_14>:
+000041a8 <__vector_14>:
 
 ISR(TIMER1_COMPB_vect, ISR_NAKED) {
 	sei();
-    40d6:	78 94       	sei
+    41a8:	78 94       	sei
 	sleep_cpu();
-    40d8:	88 95       	sleep
+    41aa:	88 95       	sleep
 	reti();
-    40da:	18 95       	reti
+    41ac:	18 95       	reti
 
-000040dc <init>:
+000041ae <init>:
 		}
 	}
 }
 
 void init() {
 	DDRC = 0xff;
-    40dc:	8f ef       	ldi	r24, 0xFF	; 255
-    40de:	87 b9       	out	0x07, r24	; 7
+    41ae:	8f ef       	ldi	r24, 0xFF	; 255
+    41b0:	87 b9       	out	0x07, r24	; 7
 	DDRD = _BV(PB7) | _BV(PB1) | _BV(PB0);
-    40e0:	83 e8       	ldi	r24, 0x83	; 131
-    40e2:	8a b9       	out	0x0a, r24	; 10
+    41b2:	83 e8       	ldi	r24, 0x83	; 131
+    41b4:	8a b9       	out	0x0a, r24	; 10
 
 	/* Setup sampling timer */
 	TCCR1B = _BV(WGM12) | _BV(CS10);	// Clear on timer compare, no prescaling
-    40e4:	e1 e8       	ldi	r30, 0x81	; 129
-    40e6:	f0 e0       	ldi	r31, 0x00	; 0
-    40e8:	89 e0       	ldi	r24, 0x09	; 9
-    40ea:	80 83       	st	Z, r24
+    41b6:	e1 e8       	ldi	r30, 0x81	; 129
+    41b8:	f0 e0       	ldi	r31, 0x00	; 0
+    41ba:	89 e0       	ldi	r24, 0x09	; 9
+    41bc:	80 83       	st	Z, r24
 	OCR1A = 500;				// Fire every 25us = 40000Hz (our sampling frequency)
-    40ec:	84 ef       	ldi	r24, 0xF4	; 244
-    40ee:	91 e0       	ldi	r25, 0x01	; 1
-    40f0:	90 93 89 00 	sts	0x0089, r25
-    40f4:	80 93 88 00 	sts	0x0088, r24
+    41be:	84 ef       	ldi	r24, 0xF4	; 244
+    41c0:	91 e0       	ldi	r25, 0x01	; 1
+    41c2:	90 93 89 00 	sts	0x0089, r25
+    41c6:	80 93 88 00 	sts	0x0088, r24
 	OCR1B = 490;
-    40f8:	8a ee       	ldi	r24, 0xEA	; 234
-    40fa:	91 e0       	ldi	r25, 0x01	; 1
-    40fc:	90 93 8b 00 	sts	0x008B, r25
-    4100:	80 93 8a 00 	sts	0x008A, r24
+    41ca:	8a ee       	ldi	r24, 0xEA	; 234
+    41cc:	91 e0       	ldi	r25, 0x01	; 1
+    41ce:	90 93 8b 00 	sts	0x008B, r25
+    41d2:	80 93 8a 00 	sts	0x008A, r24
 	TIMSK1 = _BV(OCIE1A) | _BV(OCIE1B);		// Enable output compare A interrupt
-    4104:	96 e0       	ldi	r25, 0x06	; 6
-    4106:	90 93 6f 00 	sts	0x006F, r25
+    41d6:	96 e0       	ldi	r25, 0x06	; 6
+    41d8:	90 93 6f 00 	sts	0x006F, r25
 
 	/* Setup UART */
 	UCSR0B = _BV(RXEN0) | _BV(TXEN0);	// Enable receive and transmit
-    410a:	88 e1       	ldi	r24, 0x18	; 24
-    410c:	80 93 c1 00 	sts	0x00C1, r24
+    41dc:	88 e1       	ldi	r24, 0x18	; 24
+    41de:	80 93 c1 00 	sts	0x00C1, r24
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);		// Set 8-bit frames
-    4110:	90 93 c2 00 	sts	0x00C2, r25
+    41e2:	90 93 c2 00 	sts	0x00C2, r25
 	UBRR0 = 129;	// Set baud rate to 9600
-    4114:	f0 93 c5 00 	sts	0x00C5, r31
-    4118:	e0 93 c4 00 	sts	0x00C4, r30
+    41e6:	f0 93 c5 00 	sts	0x00C5, r31
+    41ea:	e0 93 c4 00 	sts	0x00C4, r30
 
 	sei();
-    411c:	78 94       	sei
+    41ee:	78 94       	sei
 	set_sleep_mode(SLEEP_MODE_IDLE);
-    411e:	83 b7       	in	r24, 0x33	; 51
-    4120:	81 7f       	andi	r24, 0xF1	; 241
-    4122:	83 bf       	out	0x33, r24	; 51
+    41f0:	83 b7       	in	r24, 0x33	; 51
+    41f2:	81 7f       	andi	r24, 0xF1	; 241
+    41f4:	83 bf       	out	0x33, r24	; 51
 	sleep_enable();
-    4124:	83 b7       	in	r24, 0x33	; 51
-    4126:	81 60       	ori	r24, 0x01	; 1
-    4128:	83 bf       	out	0x33, r24	; 51
+    41f6:	83 b7       	in	r24, 0x33	; 51
+    41f8:	81 60       	ori	r24, 0x01	; 1
+    41fa:	83 bf       	out	0x33, r24	; 51
 }
-    412a:	08 95       	ret
+    41fc:	08 95       	ret
 
-0000412c <main>:
+000041fe <main>:
+	sleep_cpu();
 	reti();
 }
 
 int main() {
-	uint8_t recv_byte = 0;
 	init();
-    412c:	0e 94 6e 20 	call	0x40dc	; 0x40dc <init>
+    41fe:	0e 94 d7 20 	call	0x41ae	; 0x41ae <init>
+    4202:	90 91 13 01 	lds	r25, 0x0113
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
-    4130:	80 91 c0 00 	lds	r24, 0x00C0
-    4134:	87 ff       	sbrs	r24, 7
-    4136:	fc cf       	rjmp	.-8      	; 0x4130 <main+0x4>
-			recv_byte = UDR0;
-    4138:	90 91 c6 00 	lds	r25, 0x00C6
-			if(UCSR0A & _BV(UDRE0)) {
-    413c:	80 91 c0 00 	lds	r24, 0x00C0
-    4140:	85 ff       	sbrs	r24, 5
-    4142:	f6 cf       	rjmp	.-20     	; 0x4130 <main+0x4>
-				UDR0 = recv_byte;
-    4144:	90 93 c6 00 	sts	0x00C6, r25
-    4148:	f3 cf       	rjmp	.-26     	; 0x4130 <main+0x4>
+			if(buffer_status[next_buffer] == IDLE) {
+				output_buffer[next_buffer] = UDR0;
+				buffer_status[next_buffer++] = START_BIT;				
+    4206:	2f ef       	ldi	r18, 0xFF	; 255
 
-0000414a <_exit>:
-    414a:	f8 94       	cli
+int main() {
+	init();
+	while(1) {
+		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
+			if(buffer_status[next_buffer] == IDLE) {
+    4208:	a9 2f       	mov	r26, r25
+    420a:	b0 e0       	ldi	r27, 0x00	; 0
+    420c:	fd 01       	movw	r30, r26
+    420e:	e0 50       	subi	r30, 0x00	; 0
+    4210:	ff 4f       	sbci	r31, 0xFF	; 255
+    4212:	e0 81       	ld	r30, Z
+}
 
-0000414c <__stop_program>:
-    414c:	ff cf       	rjmp	.-2      	; 0x414c <__stop_program>
+int main() {
+	init();
+	while(1) {
+		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
+    4214:	80 91 c0 00 	lds	r24, 0x00C0
+    4218:	87 ff       	sbrs	r24, 7
+    421a:	fc cf       	rjmp	.-8      	; 0x4214 <main+0x16>
+			if(buffer_status[next_buffer] == IDLE) {
+    421c:	ee 3f       	cpi	r30, 0xFE	; 254
+    421e:	d1 f7       	brne	.-12     	; 0x4214 <main+0x16>
+				output_buffer[next_buffer] = UDR0;
+    4220:	80 91 c6 00 	lds	r24, 0x00C6
+    4224:	fd 01       	movw	r30, r26
+    4226:	eb 5e       	subi	r30, 0xEB	; 235
+    4228:	fe 4f       	sbci	r31, 0xFE	; 254
+    422a:	80 83       	st	Z, r24
+				buffer_status[next_buffer++] = START_BIT;				
+    422c:	a0 50       	subi	r26, 0x00	; 0
+    422e:	bf 4f       	sbci	r27, 0xFF	; 255
+    4230:	2c 93       	st	X, r18
+    4232:	9f 5f       	subi	r25, 0xFF	; 255
+    4234:	e9 cf       	rjmp	.-46     	; 0x4208 <main+0xa>
+
+00004236 <_exit>:
+    4236:	f8 94       	cli
+
+00004238 <__stop_program>:
+    4238:	ff cf       	rjmp	.-2      	; 0x4238 <__stop_program>

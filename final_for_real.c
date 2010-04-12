@@ -17,15 +17,42 @@
 // Project Definitions
 #include "sin_vals.h"
 
+#define IDLE -2
+#define START_BIT -1
+#define STOP_BIT 8
+
 uint8_t sample_num = 0;
 uint16_t freq_sum = 0; 
+uint8_t output_buffer[8];
+int8_t buffer_status[8] = {IDLE,IDLE,IDLE,IDLE,IDLE,IDLE,IDLE,IDLE};
+uint8_t next_buffer = 0;
+uint8_t output_bitpattern = 0;
+uint8_t i;
+uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b00010000, 0b00100000, 0b01000000, 0b10000000};
 void init();
 
 ISR(TIMER1_COMPA_vect) {
 	PORTD = 0;
-	PORTC = pgm_read_byte(freqBuffer[1] + sample_num);
+	PORTC = pgm_read_byte(freqBuffer[output_bitpattern] + sample_num);
 	sample_num = (sample_num + 1) & 0x3f;
 	PORTD = (1 << PB7);		
+	if(sample_num == 0) {
+		output_bitpattern = 0;
+		for(i=0; i<8; ++i) {
+			if(buffer_status[i] == IDLE) {}
+			else if(buffer_status[i] == START_BIT) {
+				output_bitpattern |= bitmasks[i];
+				++buffer_status[i];
+			}
+			else if(buffer_status[i] == STOP_BIT) {
+				buffer_status[i] = IDLE;
+			}
+			else if(bitmasks[7-buffer_status[i]] & output_buffer[i]) {
+				output_bitpattern |= bitmasks[i];
+				++buffer_status[i];
+			}
+		}
+	}
 }
 
 ISR(TIMER1_COMPB_vect, ISR_NAKED) {
@@ -35,14 +62,16 @@ ISR(TIMER1_COMPB_vect, ISR_NAKED) {
 }
 
 int main() {
-	uint8_t recv_byte = 0;
 	init();
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
-			recv_byte = UDR0;
-			if(UCSR0A & _BV(UDRE0)) {
-				UDR0 = recv_byte;
+			if(buffer_status[next_buffer] == IDLE) {
+				output_buffer[next_buffer] = UDR0;
+				buffer_status[next_buffer++] = START_BIT;				
 			}
+			/*if(UCSR0A & _BV(UDRE0)) {
+				UDR0 = recv_byte;
+			}*/
 		}
 	}
 }
