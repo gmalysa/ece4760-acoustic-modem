@@ -6,7 +6,7 @@ As things are completed, they will be listed here and categorized by week.
 
 == 4/8/10 - 4/14/10 ==
  * Made flash memory tables for all possible combinations of waveform generation.
- * Full output circuit completed and tested (atmega output successfully drives 10 ohm load).
+ * Full output circuit completed and tested with speaker load.
  * Polled UART code implemented to pull stuff off the serial lines
 
 == 3/31/10 - 4/7/10 ==
