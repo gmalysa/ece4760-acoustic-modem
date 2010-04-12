@@ -23,8 +23,7 @@ void init();
 
 ISR(TIMER1_COMPA_vect) {
 	PORTD = 0;
-	freq_sum = pgm_read_byte(f4000 + sample_num) + pgm_read_byte(f6000 + sample_num);
-	PORTC = freq_sum >> 1;
+	PORTC = pgm_read_byte(freqBuffer[1] + sample_num);
 	sample_num = (sample_num + 1) & 0x3f;
 	PORTD = (1 << PB7);		
 }
