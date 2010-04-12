@@ -27,7 +27,7 @@ for i = 0:255
     data(i+1, :) = c(i+1, :) * samples;
     % Rescale
     if (max(data(i+1,:)) ~= 0)
-        data(i+1, :) = data(i+1, :) * 128/max(data(i+1,:));
+        data(i+1, :) = data(i+1, :) * 128/max(abs(data(i+1,:)));
     end
     % Adjust position and floor
     data(i+1, :) = floor(data(i+1, :) + 128);
