@@ -27,12 +27,13 @@ volatile int8_t buffer_status[8] = {IDLE,IDLE,IDLE,IDLE,IDLE,IDLE,IDLE,IDLE};
 uint8_t next_buffer = 0;
 uint8_t output_bitpattern = 0;
 uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b00010000, 0b00100000, 0b01000000, 0b10000000};
+uint8_t freqCache[64];
 void init();
 
 ISR(TIMER1_COMPA_vect) {
 	uint8_t i;
 	PORTD = 0;
-	PORTC = pgm_read_byte(freqBuffer[output_bitpattern] + sample_num);
+	PORTC = freqCache[sample_num];
 	sample_num = (sample_num + 1) & 0x3f;
 	PORTD = (1 << PB7);		
 	if(sample_num == 0) {
@@ -50,6 +51,9 @@ ISR(TIMER1_COMPA_vect) {
 				output_bitpattern |= bitmasks[i];
 			}
 			++buffer_status[i];
+		}
+		for(i=0; i<64; ++i) {
+			freqCache[i] = pgm_read_byte(freqTable[output_bitpattern] + i);
 		}
 	}
 }
