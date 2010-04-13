@@ -4,6 +4,6 @@
 #include <inttypes.h>
 #include <avr/pgmspace.h>
 
-extern uint8_t freqBuffer[256][64] PROGMEM;
+extern uint8_t freqTable[256][64] PROGMEM;
 
 #endif
