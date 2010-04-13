@@ -1,7 +1,5 @@
 #summary Hopefully up-to-date status.
 
-= Introduction =
-
 As things are completed, they will be listed here and categorized by week.
 
 == 4/8/10 - 4/14/10 ==
