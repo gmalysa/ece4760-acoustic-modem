@@ -6,6 +6,8 @@ c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_copy_data.o)
                               final_for_real.o (__do_copy_data)
 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_clear_bss.o)
                               final_for_real.o (__do_clear_bss)
+c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/../../../../avr/lib/avr5\libc.a(memcpy_P.o)
+                              final_for_real.o (memcpy_P)
 
 Allocating common symbols
 Common symbol       size              file
@@ -124,7 +126,7 @@ LOAD c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000     0x4240
+.text           0x00000000     0x424e
  *(.vectors)
  .vectors       0x00000000       0x70 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/../../../../avr/lib/avr5/crtm644.o
                 0x00000000                __vectors
@@ -208,25 +210,29 @@ LOAD c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a
                 0x000040aa                __vector_16
                 0x000040aa                __vector_18
                 0x000040aa                __vector_20
- .text          0x000040ae      0x18e final_for_real.o
-                0x000040ae                __vector_13
-                0x000041b0                init
-                0x00004202                main
-                0x000041aa                __vector_14
- .text          0x0000423c        0x0 sin_vals.o
- .text          0x0000423c        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
- .text          0x0000423c        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_copy_data.o)
- .text          0x0000423c        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_clear_bss.o)
-                0x0000423c                . = ALIGN (0x2)
+ .text          0x000040ae      0x18a final_for_real.o
+                0x00004140                __vector_13
+                0x000040b4                init
+                0x00004106                main
+                0x000040ae                __vector_14
+ .text          0x00004238        0x0 sin_vals.o
+ .text          0x00004238        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
+ .text          0x00004238        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_copy_data.o)
+ .text          0x00004238        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_clear_bss.o)
+ .text          0x00004238        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/../../../../avr/lib/avr5\libc.a(memcpy_P.o)
+                0x00004238                . = ALIGN (0x2)
  *(.text.*)
- .text.libgcc   0x0000423c        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
- .text.libgcc   0x0000423c        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_copy_data.o)
- .text.libgcc   0x0000423c        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_clear_bss.o)
-                0x0000423c                . = ALIGN (0x2)
+ .text.libgcc   0x00004238        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
+ .text.libgcc   0x00004238        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_copy_data.o)
+ .text.libgcc   0x00004238        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_clear_bss.o)
+ .text.avr-libc
+                0x00004238       0x12 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/../../../../avr/lib/avr5\libc.a(memcpy_P.o)
+                0x00004238                memcpy_P
+                0x0000424a                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000423c        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
-                0x0000423c                exit
-                0x0000423c                _exit
+ .fini9         0x0000424a        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
+                0x0000424a                exit
+                0x0000424a                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -245,11 +251,11 @@ LOAD c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000423c        0x4 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
+ .fini0         0x0000424a        0x4 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
  *(.fini0)
-                0x00004240                _etext = .
+                0x0000424e                _etext = .
 
-.data           0x00800100       0x10 load address 0x00004240
+.data           0x00800100       0x10 load address 0x0000424e
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  .data          0x00800100        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/../../../../avr/lib/avr5/crtm644.o
@@ -260,6 +266,7 @@ LOAD c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a
  .data          0x00800110        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
  .data          0x00800110        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_copy_data.o)
  .data          0x00800110        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_clear_bss.o)
+ .data          0x00800110        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/../../../../avr/lib/avr5\libc.a(memcpy_P.o)
  *(.data*)
  *(.rodata)
  *(.rodata*)
@@ -280,14 +287,15 @@ LOAD c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a
  .bss           0x00800113        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_exit.o)
  .bss           0x00800113        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_copy_data.o)
  .bss           0x00800113        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a(_clear_bss.o)
+ .bss           0x00800113        0x0 c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/../../../../avr/lib/avr5\libc.a(memcpy_P.o)
  *(.bss*)
  *(COMMON)
  COMMON         0x00800113       0x48 final_for_real.o
                 0x00800113                output_buffer
                 0x0080011b                freqCache
                 0x0080015b                PROVIDE (__bss_end, .)
-                0x00004240                __data_load_start = LOADADDR (.data)
-                0x00004250                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0000424e                __data_load_start = LOADADDR (.data)
+                0x0000425e                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x0080015b        0x0
                 0x0080015b                PROVIDE (__noinit_start, .)
@@ -358,36 +366,35 @@ LOAD c:/winavr-20100110/bin/../lib/gcc/avr/4.3.3/avr5\libgcc.a
  .debug_pubnames
                 0x000000b8       0x20 sin_vals.o
 
-.debug_info     0x00000000      0x28c
+.debug_info     0x00000000      0x25d
  *(.debug_info)
- .debug_info    0x00000000      0x1f0 final_for_real.o
- .debug_info    0x000001f0       0x9c sin_vals.o
+ .debug_info    0x00000000      0x1c1 final_for_real.o
+ .debug_info    0x000001c1       0x9c sin_vals.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev   0x00000000      0x172
+.debug_abbrev   0x00000000      0x14d
  *(.debug_abbrev)
- .debug_abbrev  0x00000000      0x108 final_for_real.o
- .debug_abbrev  0x00000108       0x6a sin_vals.o
+ .debug_abbrev  0x00000000       0xe3 final_for_real.o
+ .debug_abbrev  0x000000e3       0x6a sin_vals.o
 
-.debug_line     0x00000000      0x2a0
+.debug_line     0x00000000      0x29a
  *(.debug_line)
- .debug_line    0x00000000      0x218 final_for_real.o
- .debug_line    0x00000218       0x88 sin_vals.o
+ .debug_line    0x00000000      0x212 final_for_real.o
+ .debug_line    0x00000212       0x88 sin_vals.o
 
 .debug_frame    0x00000000       0x50
  *(.debug_frame)
  .debug_frame   0x00000000       0x50 final_for_real.o
 
-.debug_str      0x00000000      0x11a
+.debug_str      0x00000000       0xff
  *(.debug_str)
- .debug_str     0x00000000      0x10c final_for_real.o
-                                0x14c (size before relaxing)
- .debug_str     0x0000010c        0xe sin_vals.o
+ .debug_str     0x00000000       0xf1 final_for_real.o
+                                0x131 (size before relaxing)
+ .debug_str     0x000000f1        0xe sin_vals.o
                                  0xa5 (size before relaxing)
 
-.debug_loc      0x00000000       0x13
+.debug_loc
  *(.debug_loc)
- .debug_loc     0x00000000       0x13 final_for_real.o
 
 .debug_macinfo
  *(.debug_macinfo)

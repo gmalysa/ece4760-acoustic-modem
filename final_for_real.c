@@ -52,9 +52,7 @@ ISR(TIMER1_COMPA_vect) {
 			}
 			++buffer_status[i];
 		}
-		for(i=0; i<64; ++i) {
-			freqCache[i] = pgm_read_byte(freqTable[output_bitpattern] + i);
-		}
+		memcpy_P(freqCache, freqTable[output_bitpattern], sizeof(uint8_t) * 64);
 	}
 }
 
