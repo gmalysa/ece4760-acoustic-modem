@@ -6,6 +6,7 @@ As things are completed, they will be listed here and categorized by week.
  * Made flash memory tables for all possible combinations of waveform generation.
  * Full output circuit completed and tested with speaker load.
  * Able to synthesize output waveforms for serial data. Possibly one byte at a time at the moment, but maybe not.
+ * Began documenting the schematics that are actually building, which are largely different from the originally proposed schematics.
 
 == 3/31/10 - 4/7/10 ==
  * Built Atmega Carrier (and tested)
