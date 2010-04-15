@@ -22,7 +22,7 @@ hold on;
 % Input frequencies
 f = [4000, 6000, 7000, 9000, 10000, 11000, 13000, 15000];
 % Experimentally the best resampling frequency for each is:
-fre = [4050, 6100, 7000, 9000, 10000, 11000, 13000];
+fre = [4050, 6100, 7000, 9000, 10000, 11000, 13000, 15000];
 color = ['b' 'g' 'r' 'c' 'k' 'y', 'm', 'x'];
 for a = 1:length(f)
     for phi = 0:0.1:pi/2
