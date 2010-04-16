@@ -3,25 +3,27 @@ final.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000010  00800100  0000424e  000042e2  2**0
+  0 .data         00000012  00800100  000043a8  0000443c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         0000424e  00000000  00000000  00000094  2**1
+  1 .text         000043a8  00000000  00000000  00000094  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          0000004b  00800110  00800110  000042f2  2**0
+  2 .bss          000000e6  00800112  00800112  0000444e  2**0
                   ALLOC
-  3 .debug_aranges 00000020  00000000  00000000  000042f2  2**0
+  3 .debug_aranges 00000020  00000000  00000000  0000444e  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_pubnames 000000d8  00000000  00000000  00004312  2**0
+  4 .debug_pubnames 0000021d  00000000  00000000  0000446e  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   0000025d  00000000  00000000  000043ea  2**0
+  5 .debug_info   000003e2  00000000  00000000  0000468b  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 0000014d  00000000  00000000  00004647  2**0
+  6 .debug_abbrev 0000017a  00000000  00000000  00004a6d  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   0000029a  00000000  00000000  00004794  2**0
+  7 .debug_line   00000396  00000000  00000000  00004be7  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  00000050  00000000  00000000  00004a30  2**2
+  8 .debug_frame  00000050  00000000  00000000  00004f80  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    000000ff  00000000  00000000  00004a80  2**0
+  9 .debug_str    00000245  00000000  00000000  00004fd0  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    0000009c  00000000  00000000  00005215  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -40,7 +42,7 @@ Disassembly of section .text:
       28:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
       2c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
       30:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
-      34:	0c 94 a0 20 	jmp	0x4140	; 0x4140 <__vector_13>
+      34:	0c 94 2b 21 	jmp	0x4256	; 0x4256 <__vector_13>
       38:	0c 94 57 20 	jmp	0x40ae	; 0x40ae <__vector_14>
       3c:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
       40:	0c 94 55 20 	jmp	0x40aa	; 0x40aa <__bad_interrupt>
@@ -1094,8 +1096,8 @@ Disassembly of section .text:
     407c:	11 e0       	ldi	r17, 0x01	; 1
     407e:	a0 e0       	ldi	r26, 0x00	; 0
     4080:	b1 e0       	ldi	r27, 0x01	; 1
-    4082:	ee e4       	ldi	r30, 0x4E	; 78
-    4084:	f2 e4       	ldi	r31, 0x42	; 66
+    4082:	e8 ea       	ldi	r30, 0xA8	; 168
+    4084:	f3 e4       	ldi	r31, 0x43	; 67
     4086:	02 c0       	rjmp	.+4      	; 0x408c <.do_copy_data_start>
 
 00004088 <.do_copy_data_loop>:
@@ -1103,13 +1105,13 @@ Disassembly of section .text:
     408a:	0d 92       	st	X+, r0
 
 0000408c <.do_copy_data_start>:
-    408c:	a0 31       	cpi	r26, 0x10	; 16
+    408c:	a2 31       	cpi	r26, 0x12	; 18
     408e:	b1 07       	cpc	r27, r17
     4090:	d9 f7       	brne	.-10     	; 0x4088 <.do_copy_data_loop>
 
 00004092 <__do_clear_bss>:
     4092:	11 e0       	ldi	r17, 0x01	; 1
-    4094:	a0 e1       	ldi	r26, 0x10	; 16
+    4094:	a2 e1       	ldi	r26, 0x12	; 18
     4096:	b1 e0       	ldi	r27, 0x01	; 1
     4098:	01 c0       	rjmp	.+2      	; 0x409c <.do_clear_bss_start>
 
@@ -1117,21 +1119,21 @@ Disassembly of section .text:
     409a:	1d 92       	st	X+, r1
 
 0000409c <.do_clear_bss_start>:
-    409c:	ab 35       	cpi	r26, 0x5B	; 91
+    409c:	a8 3f       	cpi	r26, 0xF8	; 248
     409e:	b1 07       	cpc	r27, r17
     40a0:	e1 f7       	brne	.-8      	; 0x409a <.do_clear_bss_loop>
-    40a2:	0e 94 83 20 	call	0x4106	; 0x4106 <main>
-    40a6:	0c 94 25 21 	jmp	0x424a	; 0x424a <_exit>
+    40a2:	0e 94 89 20 	call	0x4112	; 0x4112 <main>
+    40a6:	0c 94 d2 21 	jmp	0x43a4	; 0x43a4 <_exit>
 
 000040aa <__bad_interrupt>:
     40aa:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
 000040ae <__vector_14>:
-		memcpy_P(freqCache, freqTable[output_bitpattern], sizeof(uint8_t) * 64);
 	}
 }
 
 ISR(TIMER1_COMPB_vect, ISR_NAKED) {
+	//PORTD ^= (1 << PB2);
 	sei();
     40ae:	78 94       	sei
 	sleep_cpu();
@@ -1148,8 +1150,8 @@ void init() {
 	DDRC = 0xff;
     40b4:	8f ef       	ldi	r24, 0xFF	; 255
     40b6:	87 b9       	out	0x07, r24	; 7
-	DDRD = _BV(PB7) | _BV(PB1) | _BV(PB0);
-    40b8:	83 e8       	ldi	r24, 0x83	; 131
+	DDRD = _BV(PB7) | _BV(PB2) | _BV(PB1) | _BV(PB0);
+    40b8:	87 e8       	ldi	r24, 0x87	; 135
     40ba:	8a b9       	out	0x0a, r24	; 10
 
 	/* Setup sampling timer */
@@ -1161,8 +1163,8 @@ void init() {
     40c4:	91 e0       	ldi	r25, 0x01	; 1
     40c6:	90 93 89 00 	sts	0x0089, r25
     40ca:	80 93 88 00 	sts	0x0088, r24
-	OCR1B = 490;
-    40ce:	8a ee       	ldi	r24, 0xEA	; 234
+	OCR1B = 480;
+    40ce:	80 ee       	ldi	r24, 0xE0	; 224
     40d0:	91 e0       	ldi	r25, 0x01	; 1
     40d2:	90 93 8b 00 	sts	0x008B, r25
     40d6:	80 93 8a 00 	sts	0x008A, r24
@@ -1170,270 +1172,494 @@ void init() {
     40da:	96 e0       	ldi	r25, 0x06	; 6
     40dc:	90 93 6f 00 	sts	0x006F, r25
 
+	/* Setup AD converter */
+	ADMUX = _BV(REFS0) | _BV(ADLAR);
+    40e0:	80 e6       	ldi	r24, 0x60	; 96
+    40e2:	80 93 7c 00 	sts	0x007C, r24
+	ADCSRA = _BV(ADEN) | _BV(ADSC);
+    40e6:	80 ec       	ldi	r24, 0xC0	; 192
+    40e8:	80 93 7a 00 	sts	0x007A, r24
+
 	/* Setup UART */
 	UCSR0B = _BV(RXEN0) | _BV(TXEN0);	// Enable receive and transmit
-    40e0:	88 e1       	ldi	r24, 0x18	; 24
-    40e2:	80 93 c1 00 	sts	0x00C1, r24
+    40ec:	88 e1       	ldi	r24, 0x18	; 24
+    40ee:	80 93 c1 00 	sts	0x00C1, r24
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);		// Set 8-bit frames
-    40e6:	90 93 c2 00 	sts	0x00C2, r25
+    40f2:	90 93 c2 00 	sts	0x00C2, r25
 	UBRR0 = 520;	// Set baud rate to 2400
-    40ea:	88 e0       	ldi	r24, 0x08	; 8
-    40ec:	92 e0       	ldi	r25, 0x02	; 2
-    40ee:	90 93 c5 00 	sts	0x00C5, r25
-    40f2:	80 93 c4 00 	sts	0x00C4, r24
+    40f6:	88 e0       	ldi	r24, 0x08	; 8
+    40f8:	92 e0       	ldi	r25, 0x02	; 2
+    40fa:	90 93 c5 00 	sts	0x00C5, r25
+    40fe:	80 93 c4 00 	sts	0x00C4, r24
 
 	sei();
-    40f6:	78 94       	sei
+    4102:	78 94       	sei
 	set_sleep_mode(SLEEP_MODE_IDLE);
-    40f8:	83 b7       	in	r24, 0x33	; 51
-    40fa:	81 7f       	andi	r24, 0xF1	; 241
-    40fc:	83 bf       	out	0x33, r24	; 51
+    4104:	83 b7       	in	r24, 0x33	; 51
+    4106:	81 7f       	andi	r24, 0xF1	; 241
+    4108:	83 bf       	out	0x33, r24	; 51
 	sleep_enable();
-    40fe:	83 b7       	in	r24, 0x33	; 51
-    4100:	81 60       	ori	r24, 0x01	; 1
-    4102:	83 bf       	out	0x33, r24	; 51
+    410a:	83 b7       	in	r24, 0x33	; 51
+    410c:	81 60       	ori	r24, 0x01	; 1
+    410e:	83 bf       	out	0x33, r24	; 51
 }
-    4104:	08 95       	ret
+    4110:	08 95       	ret
 
-00004106 <main>:
+00004112 <main>:
+	sei();
 	sleep_cpu();
 	reti();
 }
 
 int main() {
+    4112:	ff 92       	push	r15
+    4114:	0f 93       	push	r16
+    4116:	1f 93       	push	r17
+	int8_t this_input_buffer = -1;
+	int8_t input_sin_sample, input_cos_sample;
+	uint8_t analyze = 1;
+	int16_t analyze_output, analyze_temp;
 	init();
-    4106:	0e 94 5a 20 	call	0x40b4	; 0x40b4 <init>
-    410a:	90 91 11 01 	lds	r25, 0x0111
+    4118:	0e 94 5a 20 	call	0x40b4	; 0x40b4 <init>
+    411c:	10 91 13 01 	lds	r17, 0x0113
+    4120:	70 91 17 01 	lds	r23, 0x0117
+    4124:	40 91 18 01 	lds	r20, 0x0118
+    4128:	20 91 1d 01 	lds	r18, 0x011D
+    412c:	30 91 1e 01 	lds	r19, 0x011E
+    4130:	6f ef       	ldi	r22, 0xFF	; 255
+    4132:	51 e0       	ldi	r21, 0x01	; 1
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
-			while(buffer_status[next_buffer] != IDLE) {;}
+			while(output_buffer_status[next_buffer] != IDLE) {;}
 			output_buffer[next_buffer] = UDR0;
-			UDR0 = output_buffer[next_buffer];
-			buffer_status[next_buffer] = START_BIT;	
-    410e:	2f ef       	ldi	r18, 0xFF	; 255
-}
-
+			output_buffer_status[next_buffer] = START_BIT;
+    4134:	ff 24       	eor	r15, r15
+    4136:	fa 94       	dec	r15
+			if(input_buffer_resample_position + float2fix(10./4.) > input_buffer_resample_position) {
+				cos_acc -= resample_buffer_cos[resample_buffer_cos_position];
+				input_cos_sample = input_buffer[this_input_buffer][fix2int(input_buffer_resample_position + float2fix(10./4.))];
+				cos_acc += input_cos_sample;
+				resample_buffer_cos[resample_buffer_cos_position++] = input_cos_sample;
+				if(resample_buffer_cos_position > 6) {
+    4138:	01 e0       	ldi	r16, 0x01	; 1
+    413a:	01 c0       	rjmp	.+2      	; 0x413e <main+0x2c>
 int main() {
+	int8_t this_input_buffer = -1;
+	int8_t input_sin_sample, input_cos_sample;
+	uint8_t analyze = 1;
+	int16_t analyze_output, analyze_temp;
 	init();
+    413c:	51 e0       	ldi	r21, 0x01	; 1
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
-    4110:	80 91 c0 00 	lds	r24, 0x00C0
-    4114:	87 ff       	sbrs	r24, 7
-    4116:	fc cf       	rjmp	.-8      	; 0x4110 <main+0xa>
-			while(buffer_status[next_buffer] != IDLE) {;}
-    4118:	e9 2f       	mov	r30, r25
-    411a:	f0 e0       	ldi	r31, 0x00	; 0
-    411c:	df 01       	movw	r26, r30
-    411e:	a0 50       	subi	r26, 0x00	; 0
-    4120:	bf 4f       	sbci	r27, 0xFF	; 255
-    4122:	8c 91       	ld	r24, X
-    4124:	8e 3f       	cpi	r24, 0xFE	; 254
-    4126:	e9 f7       	brne	.-6      	; 0x4122 <main+0x1c>
+    413e:	80 91 c0 00 	lds	r24, 0x00C0
+    4142:	87 ff       	sbrs	r24, 7
+    4144:	13 c0       	rjmp	.+38     	; 0x416c <main+0x5a>
+			while(output_buffer_status[next_buffer] != IDLE) {;}
+    4146:	e1 2f       	mov	r30, r17
+    4148:	f0 e0       	ldi	r31, 0x00	; 0
+    414a:	df 01       	movw	r26, r30
+    414c:	a0 50       	subi	r26, 0x00	; 0
+    414e:	bf 4f       	sbci	r27, 0xFF	; 255
+    4150:	8c 91       	ld	r24, X
+    4152:	8e 3f       	cpi	r24, 0xFE	; 254
+    4154:	e9 f7       	brne	.-6      	; 0x4150 <main+0x3e>
 			output_buffer[next_buffer] = UDR0;
-    4128:	80 91 c6 00 	lds	r24, 0x00C6
-    412c:	ed 5e       	subi	r30, 0xED	; 237
-    412e:	fe 4f       	sbci	r31, 0xFE	; 254
-    4130:	80 83       	st	Z, r24
-			UDR0 = output_buffer[next_buffer];
-    4132:	80 81       	ld	r24, Z
-    4134:	80 93 c6 00 	sts	0x00C6, r24
-			buffer_status[next_buffer] = START_BIT;	
-    4138:	2c 93       	st	X, r18
+    4156:	80 91 c6 00 	lds	r24, 0x00C6
+    415a:	e7 5d       	subi	r30, 0xD7	; 215
+    415c:	fe 4f       	sbci	r31, 0xFE	; 254
+    415e:	80 83       	st	Z, r24
+			output_buffer_status[next_buffer] = START_BIT;
+    4160:	fc 92       	st	X, r15
+			UDR0 = output_buffer[next_buffer];	
+    4162:	80 81       	ld	r24, Z
+    4164:	80 93 c6 00 	sts	0x00C6, r24
 			next_buffer = (next_buffer + 1) & 0x7;
-    413a:	9f 5f       	subi	r25, 0xFF	; 255
-    413c:	97 70       	andi	r25, 0x07	; 7
-    413e:	e8 cf       	rjmp	.-48     	; 0x4110 <main+0xa>
+    4168:	1f 5f       	subi	r17, 0xFF	; 255
+    416a:	17 70       	andi	r17, 0x07	; 7
+		}
+		if(input_ready) {
+    416c:	80 91 16 01 	lds	r24, 0x0116
+    4170:	88 23       	and	r24, r24
+    4172:	09 f4       	brne	.+2      	; 0x4176 <main+0x64>
+    4174:	6c c0       	rjmp	.+216    	; 0x424e <main+0x13c>
+			if(this_input_buffer < 0) {
+    4176:	67 ff       	sbrs	r22, 7
+    4178:	03 c0       	rjmp	.+6      	; 0x4180 <main+0x6e>
+				this_input_buffer = input_buffer_num ^ 1;
+    417a:	60 91 15 01 	lds	r22, 0x0115
+    417e:	60 27       	eor	r22, r16
+			}
+			if(resample_buffer_sin_position != resample_buffer_cos_position) { // Sin and cos split buffers, so we need to do cos twice
+    4180:	74 17       	cp	r23, r20
+    4182:	e9 f0       	breq	.+58     	; 0x41be <main+0xac>
+				cos_acc -= resample_buffer_cos[resample_buffer_cos_position];
+    4184:	a4 2f       	mov	r26, r20
+    4186:	b0 e0       	ldi	r27, 0x00	; 0
+				input_cos_sample = input_buffer[this_input_buffer][fix2int(input_buffer_resample_position - float2fix(10./4.))];
+    4188:	e6 2f       	mov	r30, r22
+    418a:	ff 27       	eor	r31, r31
+    418c:	e7 fd       	sbrc	r30, 7
+    418e:	f0 95       	com	r31
+    4190:	20 50       	subi	r18, 0x00	; 0
+    4192:	3a 40       	sbci	r19, 0x0A	; 10
+    4194:	83 2f       	mov	r24, r19
+    4196:	86 95       	lsr	r24
+    4198:	86 95       	lsr	r24
+    419a:	20 50       	subi	r18, 0x00	; 0
+    419c:	36 4f       	sbci	r19, 0xF6	; 246
+    419e:	96 e0       	ldi	r25, 0x06	; 6
+    41a0:	ee 0f       	add	r30, r30
+    41a2:	ff 1f       	adc	r31, r31
+    41a4:	9a 95       	dec	r25
+    41a6:	e1 f7       	brne	.-8      	; 0x41a0 <main+0x8e>
+    41a8:	e8 0f       	add	r30, r24
+    41aa:	f1 1d       	adc	r31, r1
+    41ac:	ef 5c       	subi	r30, 0xCF	; 207
+    41ae:	fe 4f       	sbci	r31, 0xFE	; 254
+    41b0:	80 81       	ld	r24, Z
+		if(input_ready) {
+			if(this_input_buffer < 0) {
+				this_input_buffer = input_buffer_num ^ 1;
+			}
+			if(resample_buffer_sin_position != resample_buffer_cos_position) { // Sin and cos split buffers, so we need to do cos twice
+				cos_acc -= resample_buffer_cos[resample_buffer_cos_position];
+    41b2:	ae 5d       	subi	r26, 0xDE	; 222
+    41b4:	be 4f       	sbci	r27, 0xFE	; 254
+				input_cos_sample = input_buffer[this_input_buffer][fix2int(input_buffer_resample_position - float2fix(10./4.))];
+				cos_acc += input_cos_sample;
+				resample_buffer_cos[resample_buffer_cos_position] = input_cos_sample;
+    41b6:	8c 93       	st	X, r24
+				if(resample_buffer_cos_position > 6) {
+    41b8:	47 30       	cpi	r20, 0x07	; 7
+    41ba:	08 f0       	brcs	.+2      	; 0x41be <main+0xac>
+    41bc:	40 e0       	ldi	r20, 0x00	; 0
+					resample_buffer_cos_position = 0;
+				}
+			}
+			// Update sin values
+			sin_acc -= resample_buffer_sin[resample_buffer_sin_position];
+			input_sin_sample = input_buffer[this_input_buffer][fix2int(input_buffer_resample_position)];
+    41be:	a6 2f       	mov	r26, r22
+    41c0:	bb 27       	eor	r27, r27
+    41c2:	a7 fd       	sbrc	r26, 7
+    41c4:	b0 95       	com	r27
+    41c6:	83 2f       	mov	r24, r19
+    41c8:	86 95       	lsr	r24
+    41ca:	86 95       	lsr	r24
+    41cc:	fd 01       	movw	r30, r26
+    41ce:	56 e0       	ldi	r21, 0x06	; 6
+    41d0:	ee 0f       	add	r30, r30
+    41d2:	ff 1f       	adc	r31, r31
+    41d4:	5a 95       	dec	r21
+    41d6:	e1 f7       	brne	.-8      	; 0x41d0 <main+0xbe>
+    41d8:	e8 0f       	add	r30, r24
+    41da:	f1 1d       	adc	r31, r1
+    41dc:	ef 5c       	subi	r30, 0xCF	; 207
+    41de:	fe 4f       	sbci	r31, 0xFE	; 254
+    41e0:	80 81       	ld	r24, Z
+			sin_acc += input_sin_sample;
+			resample_buffer_sin[resample_buffer_sin_position++] = input_sin_sample;
+    41e2:	e7 2f       	mov	r30, r23
+    41e4:	f0 e0       	ldi	r31, 0x00	; 0
+    41e6:	ef 50       	subi	r30, 0x0F	; 15
+    41e8:	fe 4f       	sbci	r31, 0xFE	; 254
+    41ea:	80 83       	st	Z, r24
+    41ec:	7f 5f       	subi	r23, 0xFF	; 255
+			if(resample_buffer_sin_position > 6) {
+    41ee:	77 30       	cpi	r23, 0x07	; 7
+    41f0:	08 f0       	brcs	.+2      	; 0x41f4 <main+0xe2>
+    41f2:	70 e0       	ldi	r23, 0x00	; 0
+				resample_buffer_sin_position = 0;
+			}
+			// Update cos values iff the sample is not in the next buffer
+			if(input_buffer_resample_position + float2fix(10./4.) > input_buffer_resample_position) {
+    41f4:	c9 01       	movw	r24, r18
+    41f6:	80 50       	subi	r24, 0x00	; 0
+    41f8:	96 4f       	sbci	r25, 0xF6	; 246
+    41fa:	28 17       	cp	r18, r24
+    41fc:	39 07       	cpc	r19, r25
+    41fe:	10 f0       	brcs	.+4      	; 0x4204 <main+0xf2>
+    4200:	50 e0       	ldi	r21, 0x00	; 0
+    4202:	19 c0       	rjmp	.+50     	; 0x4236 <main+0x124>
+				cos_acc -= resample_buffer_cos[resample_buffer_cos_position];
+    4204:	e4 2f       	mov	r30, r20
+    4206:	f0 e0       	ldi	r31, 0x00	; 0
+				input_cos_sample = input_buffer[this_input_buffer][fix2int(input_buffer_resample_position + float2fix(10./4.))];
+    4208:	89 2f       	mov	r24, r25
+    420a:	86 95       	lsr	r24
+    420c:	86 95       	lsr	r24
+    420e:	96 e0       	ldi	r25, 0x06	; 6
+    4210:	aa 0f       	add	r26, r26
+    4212:	bb 1f       	adc	r27, r27
+    4214:	9a 95       	dec	r25
+    4216:	e1 f7       	brne	.-8      	; 0x4210 <main+0xfe>
+    4218:	a8 0f       	add	r26, r24
+    421a:	b1 1d       	adc	r27, r1
+    421c:	af 5c       	subi	r26, 0xCF	; 207
+    421e:	be 4f       	sbci	r27, 0xFE	; 254
+    4220:	8c 91       	ld	r24, X
+				cos_acc += input_cos_sample;
+    4222:	ee 5d       	subi	r30, 0xDE	; 222
+    4224:	fe 4f       	sbci	r31, 0xFE	; 254
+				resample_buffer_cos[resample_buffer_cos_position++] = input_cos_sample;
+    4226:	80 83       	st	Z, r24
+    4228:	4f 5f       	subi	r20, 0xFF	; 255
+				if(resample_buffer_cos_position > 6) {
+    422a:	47 30       	cpi	r20, 0x07	; 7
+    422c:	10 f4       	brcc	.+4      	; 0x4232 <main+0x120>
+    422e:	51 e0       	ldi	r21, 0x01	; 1
+    4230:	02 c0       	rjmp	.+4      	; 0x4236 <main+0x124>
+    4232:	51 e0       	ldi	r21, 0x01	; 1
+    4234:	40 e0       	ldi	r20, 0x00	; 0
+			// Cos sample is in the next buffer, delay processing
+			else {
+				analyze = 0;
+			}
+			last_input_buffer_resample_position = input_buffer_resample_position;
+			input_buffer_resample_position += float2fix(10.);
+    4236:	c9 01       	movw	r24, r18
+    4238:	80 50       	subi	r24, 0x00	; 0
+    423a:	98 4d       	sbci	r25, 0xD8	; 216
+			if(input_buffer_resample_position < last_input_buffer_resample_position) { // We finished this buffer
+    423c:	82 17       	cp	r24, r18
+    423e:	93 07       	cpc	r25, r19
+    4240:	10 f0       	brcs	.+4      	; 0x4246 <main+0x134>
+    4242:	9c 01       	movw	r18, r24
+    4244:	04 c0       	rjmp	.+8      	; 0x424e <main+0x13c>
+				input_ready = 0;
+    4246:	10 92 16 01 	sts	0x0116, r1
+    424a:	9c 01       	movw	r18, r24
+    424c:	6f ef       	ldi	r22, 0xFF	; 255
+				this_input_buffer = -1;
+			}
+		}
+		if(analyze) {
+    424e:	55 23       	and	r21, r21
+    4250:	09 f4       	brne	.+2      	; 0x4254 <main+0x142>
+    4252:	75 cf       	rjmp	.-278    	; 0x413e <main+0x2c>
+    4254:	73 cf       	rjmp	.-282    	; 0x413c <main+0x2a>
 
-00004140 <__vector_13>:
-uint8_t output_bitpattern = 0;
-uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b00010000, 0b00100000, 0b01000000, 0b10000000};
-uint8_t freqCache[64];
+00004256 <__vector_13>:
+uint16_t last_input_buffer_resample_position = 0;
+uint16_t resample_increment = float2fix(10.);
+uint8_t input_buffer_pos = 0;
 void init();
 
 ISR(TIMER1_COMPA_vect) {
-    4140:	1f 92       	push	r1
-    4142:	0f 92       	push	r0
-    4144:	0f b6       	in	r0, 0x3f	; 63
-    4146:	0f 92       	push	r0
-    4148:	11 24       	eor	r1, r1
-    414a:	2f 93       	push	r18
-    414c:	3f 93       	push	r19
-    414e:	4f 93       	push	r20
-    4150:	5f 93       	push	r21
-    4152:	6f 93       	push	r22
-    4154:	7f 93       	push	r23
-    4156:	8f 93       	push	r24
-    4158:	9f 93       	push	r25
-    415a:	af 93       	push	r26
-    415c:	bf 93       	push	r27
-    415e:	cf 93       	push	r28
-    4160:	df 93       	push	r29
-    4162:	ef 93       	push	r30
-    4164:	ff 93       	push	r31
+    4256:	1f 92       	push	r1
+    4258:	0f 92       	push	r0
+    425a:	0f b6       	in	r0, 0x3f	; 63
+    425c:	0f 92       	push	r0
+    425e:	11 24       	eor	r1, r1
+    4260:	2f 93       	push	r18
+    4262:	3f 93       	push	r19
+    4264:	4f 93       	push	r20
+    4266:	5f 93       	push	r21
+    4268:	6f 93       	push	r22
+    426a:	7f 93       	push	r23
+    426c:	8f 93       	push	r24
+    426e:	9f 93       	push	r25
+    4270:	af 93       	push	r26
+    4272:	bf 93       	push	r27
+    4274:	cf 93       	push	r28
+    4276:	df 93       	push	r29
+    4278:	ef 93       	push	r30
+    427a:	ff 93       	push	r31
 	uint8_t i;
-	PORTD = 0;
-    4166:	1b b8       	out	0x0b, r1	; 11
-	PORTC = freqCache[sample_num];
-    4168:	80 91 10 01 	lds	r24, 0x0110
-    416c:	e8 2f       	mov	r30, r24
-    416e:	f0 e0       	ldi	r31, 0x00	; 0
-    4170:	e5 5e       	subi	r30, 0xE5	; 229
-    4172:	fe 4f       	sbci	r31, 0xFE	; 254
-    4174:	90 81       	ld	r25, Z
-    4176:	98 b9       	out	0x08, r25	; 8
-	sample_num = (sample_num + 1) & 0x3f;
-    4178:	8f 5f       	subi	r24, 0xFF	; 255
-    417a:	8f 73       	andi	r24, 0x3F	; 63
-    417c:	80 93 10 01 	sts	0x0110, r24
-	PORTD = (1 << PB7);		
-    4180:	90 e8       	ldi	r25, 0x80	; 128
-    4182:	9b b9       	out	0x0b, r25	; 11
-	if(sample_num == 0) {
-    4184:	88 23       	and	r24, r24
-    4186:	09 f0       	breq	.+2      	; 0x418a <__vector_13+0x4a>
-    4188:	44 c0       	rjmp	.+136    	; 0x4212 <__vector_13+0xd2>
-    418a:	a8 e0       	ldi	r26, 0x08	; 8
-    418c:	b1 e0       	ldi	r27, 0x01	; 1
-    418e:	60 e0       	ldi	r22, 0x00	; 0
-    4190:	40 e0       	ldi	r20, 0x00	; 0
-    4192:	50 e0       	ldi	r21, 0x00	; 0
+	PORTD &= ~_BV(PB7);
+    427c:	5f 98       	cbi	0x0b, 7	; 11
+	PORTC = freqCache[output_sample_num];
+    427e:	20 91 12 01 	lds	r18, 0x0112
+    4282:	e2 2f       	mov	r30, r18
+    4284:	f0 e0       	ldi	r31, 0x00	; 0
+    4286:	ef 54       	subi	r30, 0x4F	; 79
+    4288:	fe 4f       	sbci	r31, 0xFE	; 254
+    428a:	80 81       	ld	r24, Z
+    428c:	88 b9       	out	0x08, r24	; 8
+	output_sample_num = (output_sample_num + 1) & 0x3f;
+    428e:	2f 5f       	subi	r18, 0xFF	; 255
+    4290:	2f 73       	andi	r18, 0x3F	; 63
+    4292:	20 93 12 01 	sts	0x0112, r18
+	PORTD |= _BV(PB7);	
+    4296:	5f 9a       	sbi	0x0b, 7	; 11
+	ADCSRA |= _BV(ADSC);
+    4298:	80 91 7a 00 	lds	r24, 0x007A
+    429c:	80 64       	ori	r24, 0x40	; 64
+    429e:	80 93 7a 00 	sts	0x007A, r24
+	input_buffer[input_buffer_num][input_buffer_pos] = ADCH - 127;
+    42a2:	e0 91 15 01 	lds	r30, 0x0115
+    42a6:	f0 e0       	ldi	r31, 0x00	; 0
+    42a8:	90 91 21 01 	lds	r25, 0x0121
+    42ac:	80 91 79 00 	lds	r24, 0x0079
+    42b0:	8f 57       	subi	r24, 0x7F	; 127
+    42b2:	36 e0       	ldi	r19, 0x06	; 6
+    42b4:	ee 0f       	add	r30, r30
+    42b6:	ff 1f       	adc	r31, r31
+    42b8:	3a 95       	dec	r19
+    42ba:	e1 f7       	brne	.-8      	; 0x42b4 <__vector_13+0x5e>
+    42bc:	e9 0f       	add	r30, r25
+    42be:	f1 1d       	adc	r31, r1
+    42c0:	ef 5c       	subi	r30, 0xCF	; 207
+    42c2:	fe 4f       	sbci	r31, 0xFE	; 254
+    42c4:	80 83       	st	Z, r24
+	input_buffer_pos = (input_buffer_pos+1) & (IN_BUFFER_SIZE - 1);
+    42c6:	9f 5f       	subi	r25, 0xFF	; 255
+    42c8:	9f 73       	andi	r25, 0x3F	; 63
+    42ca:	90 93 21 01 	sts	0x0121, r25
+	if(output_sample_num == 0) {
+    42ce:	22 23       	and	r18, r18
+    42d0:	09 f0       	breq	.+2      	; 0x42d4 <__vector_13+0x7e>
+    42d2:	4c c0       	rjmp	.+152    	; 0x436c <__vector_13+0x116>
+		input_buffer_num ^= 1;
+    42d4:	80 91 15 01 	lds	r24, 0x0115
+    42d8:	91 e0       	ldi	r25, 0x01	; 1
+    42da:	89 27       	eor	r24, r25
+    42dc:	80 93 15 01 	sts	0x0115, r24
+		input_ready = 1;
+    42e0:	90 93 16 01 	sts	0x0116, r25
+    42e4:	a8 e0       	ldi	r26, 0x08	; 8
+    42e6:	b1 e0       	ldi	r27, 0x01	; 1
+    42e8:	60 e0       	ldi	r22, 0x00	; 0
+    42ea:	40 e0       	ldi	r20, 0x00	; 0
+    42ec:	50 e0       	ldi	r21, 0x00	; 0
 			}
-			else if(buffer_status[i] == STOP_BIT) {
-				buffer_status[i] = IDLE;
+			else if(output_buffer_status[i] == STOP_BIT) {
+				output_buffer_status[i] = IDLE;
 				continue;
 			}
-			else if(bitmasks[7-buffer_status[i]] & output_buffer[i]) {
-    4194:	c7 e0       	ldi	r28, 0x07	; 7
-    4196:	d0 e0       	ldi	r29, 0x00	; 0
-			if(buffer_status[i] == IDLE) {continue;}
-			else if(buffer_status[i] == START_BIT) {
+			else if(bitmasks[7-output_buffer_status[i]] & output_buffer[i]) {
+    42ee:	c7 e0       	ldi	r28, 0x07	; 7
+    42f0:	d0 e0       	ldi	r29, 0x00	; 0
+			if(output_buffer_status[i] == IDLE) {continue;}
+			else if(output_buffer_status[i] == START_BIT) {
 				output_bitpattern |= bitmasks[i];
 			}
-			else if(buffer_status[i] == STOP_BIT) {
-				buffer_status[i] = IDLE;
-    4198:	3e ef       	ldi	r19, 0xFE	; 254
-	sample_num = (sample_num + 1) & 0x3f;
-	PORTD = (1 << PB7);		
-	if(sample_num == 0) {
+			else if(output_buffer_status[i] == STOP_BIT) {
+				output_buffer_status[i] = IDLE;
+    42f2:	3e ef       	ldi	r19, 0xFE	; 254
+	if(output_sample_num == 0) {
+		input_buffer_num ^= 1;
+		input_ready = 1;
 		output_bitpattern = 0;
 		for(i=0; i<8; ++i) {
-			if(buffer_status[i] == IDLE) {continue;}
-    419a:	fa 01       	movw	r30, r20
-    419c:	e0 50       	subi	r30, 0x00	; 0
-    419e:	ff 4f       	sbci	r31, 0xFF	; 255
-    41a0:	80 81       	ld	r24, Z
-    41a2:	8e 3f       	cpi	r24, 0xFE	; 254
-    41a4:	01 f1       	breq	.+64     	; 0x41e6 <__vector_13+0xa6>
-			else if(buffer_status[i] == START_BIT) {
-    41a6:	80 81       	ld	r24, Z
-    41a8:	8f 3f       	cpi	r24, 0xFF	; 255
-    41aa:	a9 f0       	breq	.+42     	; 0x41d6 <__vector_13+0x96>
+			if(output_buffer_status[i] == IDLE) {continue;}
+    42f4:	fa 01       	movw	r30, r20
+    42f6:	e0 50       	subi	r30, 0x00	; 0
+    42f8:	ff 4f       	sbci	r31, 0xFF	; 255
+    42fa:	80 81       	ld	r24, Z
+    42fc:	8e 3f       	cpi	r24, 0xFE	; 254
+    42fe:	01 f1       	breq	.+64     	; 0x4340 <__vector_13+0xea>
+			else if(output_buffer_status[i] == START_BIT) {
+    4300:	80 81       	ld	r24, Z
+    4302:	8f 3f       	cpi	r24, 0xFF	; 255
+    4304:	a9 f0       	breq	.+42     	; 0x4330 <__vector_13+0xda>
 				output_bitpattern |= bitmasks[i];
 			}
-			else if(buffer_status[i] == STOP_BIT) {
-    41ac:	80 81       	ld	r24, Z
-    41ae:	88 30       	cpi	r24, 0x08	; 8
-    41b0:	11 f4       	brne	.+4      	; 0x41b6 <__vector_13+0x76>
-				buffer_status[i] = IDLE;
-    41b2:	30 83       	st	Z, r19
-    41b4:	18 c0       	rjmp	.+48     	; 0x41e6 <__vector_13+0xa6>
+			else if(output_buffer_status[i] == STOP_BIT) {
+    4306:	80 81       	ld	r24, Z
+    4308:	88 30       	cpi	r24, 0x08	; 8
+    430a:	11 f4       	brne	.+4      	; 0x4310 <__vector_13+0xba>
+				output_buffer_status[i] = IDLE;
+    430c:	30 83       	st	Z, r19
+    430e:	18 c0       	rjmp	.+48     	; 0x4340 <__vector_13+0xea>
 				continue;
 			}
-			else if(bitmasks[7-buffer_status[i]] & output_buffer[i]) {
-    41b6:	80 81       	ld	r24, Z
-    41b8:	fa 01       	movw	r30, r20
-    41ba:	ed 5e       	subi	r30, 0xED	; 237
-    41bc:	fe 4f       	sbci	r31, 0xFE	; 254
-    41be:	20 81       	ld	r18, Z
-    41c0:	99 27       	eor	r25, r25
-    41c2:	87 fd       	sbrc	r24, 7
-    41c4:	90 95       	com	r25
-    41c6:	fe 01       	movw	r30, r28
-    41c8:	e8 1b       	sub	r30, r24
-    41ca:	f9 0b       	sbc	r31, r25
-    41cc:	e8 5f       	subi	r30, 0xF8	; 248
-    41ce:	fe 4f       	sbci	r31, 0xFE	; 254
-    41d0:	80 81       	ld	r24, Z
-    41d2:	28 23       	and	r18, r24
-    41d4:	11 f0       	breq	.+4      	; 0x41da <__vector_13+0x9a>
+			else if(bitmasks[7-output_buffer_status[i]] & output_buffer[i]) {
+    4310:	80 81       	ld	r24, Z
+    4312:	fa 01       	movw	r30, r20
+    4314:	e7 5d       	subi	r30, 0xD7	; 215
+    4316:	fe 4f       	sbci	r31, 0xFE	; 254
+    4318:	20 81       	ld	r18, Z
+    431a:	99 27       	eor	r25, r25
+    431c:	87 fd       	sbrc	r24, 7
+    431e:	90 95       	com	r25
+    4320:	fe 01       	movw	r30, r28
+    4322:	e8 1b       	sub	r30, r24
+    4324:	f9 0b       	sbc	r31, r25
+    4326:	e8 5f       	subi	r30, 0xF8	; 248
+    4328:	fe 4f       	sbci	r31, 0xFE	; 254
+    432a:	80 81       	ld	r24, Z
+    432c:	28 23       	and	r18, r24
+    432e:	11 f0       	breq	.+4      	; 0x4334 <__vector_13+0xde>
 				output_bitpattern |= bitmasks[i];
-    41d6:	8c 91       	ld	r24, X
-    41d8:	68 2b       	or	r22, r24
+    4330:	8c 91       	ld	r24, X
+    4332:	68 2b       	or	r22, r24
 			}
-			++buffer_status[i];
-    41da:	fa 01       	movw	r30, r20
-    41dc:	e0 50       	subi	r30, 0x00	; 0
-    41de:	ff 4f       	sbci	r31, 0xFF	; 255
-    41e0:	80 81       	ld	r24, Z
-    41e2:	8f 5f       	subi	r24, 0xFF	; 255
-    41e4:	80 83       	st	Z, r24
-    41e6:	4f 5f       	subi	r20, 0xFF	; 255
-    41e8:	5f 4f       	sbci	r21, 0xFF	; 255
-    41ea:	11 96       	adiw	r26, 0x01	; 1
-	PORTC = freqCache[sample_num];
-	sample_num = (sample_num + 1) & 0x3f;
-	PORTD = (1 << PB7);		
-	if(sample_num == 0) {
+			++output_buffer_status[i];
+    4334:	fa 01       	movw	r30, r20
+    4336:	e0 50       	subi	r30, 0x00	; 0
+    4338:	ff 4f       	sbci	r31, 0xFF	; 255
+    433a:	80 81       	ld	r24, Z
+    433c:	8f 5f       	subi	r24, 0xFF	; 255
+    433e:	80 83       	st	Z, r24
+    4340:	4f 5f       	subi	r20, 0xFF	; 255
+    4342:	5f 4f       	sbci	r21, 0xFF	; 255
+    4344:	11 96       	adiw	r26, 0x01	; 1
+	input_buffer_pos = (input_buffer_pos+1) & (IN_BUFFER_SIZE - 1);
+	if(output_sample_num == 0) {
+		input_buffer_num ^= 1;
+		input_ready = 1;
 		output_bitpattern = 0;
 		for(i=0; i<8; ++i) {
-    41ec:	48 30       	cpi	r20, 0x08	; 8
-    41ee:	51 05       	cpc	r21, r1
-    41f0:	a1 f6       	brne	.-88     	; 0x419a <__vector_13+0x5a>
-    41f2:	60 93 12 01 	sts	0x0112, r22
-			else if(bitmasks[7-buffer_status[i]] & output_buffer[i]) {
+    4346:	48 30       	cpi	r20, 0x08	; 8
+    4348:	51 05       	cpc	r21, r1
+    434a:	a1 f6       	brne	.-88     	; 0x42f4 <__vector_13+0x9e>
+    434c:	60 93 14 01 	sts	0x0114, r22
+			else if(bitmasks[7-output_buffer_status[i]] & output_buffer[i]) {
 				output_bitpattern |= bitmasks[i];
 			}
-			++buffer_status[i];
+			++output_buffer_status[i];
 		}
 		memcpy_P(freqCache, freqTable[output_bitpattern], sizeof(uint8_t) * 64);
-    41f6:	70 e0       	ldi	r23, 0x00	; 0
-    41f8:	86 e0       	ldi	r24, 0x06	; 6
-    41fa:	66 0f       	add	r22, r22
-    41fc:	77 1f       	adc	r23, r23
-    41fe:	8a 95       	dec	r24
-    4200:	e1 f7       	brne	.-8      	; 0x41fa <__vector_13+0xba>
-    4202:	60 59       	subi	r22, 0x90	; 144
-    4204:	7f 4f       	sbci	r23, 0xFF	; 255
-    4206:	8b e1       	ldi	r24, 0x1B	; 27
-    4208:	91 e0       	ldi	r25, 0x01	; 1
-    420a:	40 e4       	ldi	r20, 0x40	; 64
-    420c:	50 e0       	ldi	r21, 0x00	; 0
-    420e:	0e 94 1c 21 	call	0x4238	; 0x4238 <memcpy_P>
+    4350:	70 e0       	ldi	r23, 0x00	; 0
+    4352:	26 e0       	ldi	r18, 0x06	; 6
+    4354:	66 0f       	add	r22, r22
+    4356:	77 1f       	adc	r23, r23
+    4358:	2a 95       	dec	r18
+    435a:	e1 f7       	brne	.-8      	; 0x4354 <__vector_13+0xfe>
+    435c:	60 59       	subi	r22, 0x90	; 144
+    435e:	7f 4f       	sbci	r23, 0xFF	; 255
+    4360:	81 eb       	ldi	r24, 0xB1	; 177
+    4362:	91 e0       	ldi	r25, 0x01	; 1
+    4364:	40 e4       	ldi	r20, 0x40	; 64
+    4366:	50 e0       	ldi	r21, 0x00	; 0
+    4368:	0e 94 c9 21 	call	0x4392	; 0x4392 <memcpy_P>
 	}
 }
-    4212:	ff 91       	pop	r31
-    4214:	ef 91       	pop	r30
-    4216:	df 91       	pop	r29
-    4218:	cf 91       	pop	r28
-    421a:	bf 91       	pop	r27
-    421c:	af 91       	pop	r26
-    421e:	9f 91       	pop	r25
-    4220:	8f 91       	pop	r24
-    4222:	7f 91       	pop	r23
-    4224:	6f 91       	pop	r22
-    4226:	5f 91       	pop	r21
-    4228:	4f 91       	pop	r20
-    422a:	3f 91       	pop	r19
-    422c:	2f 91       	pop	r18
-    422e:	0f 90       	pop	r0
-    4230:	0f be       	out	0x3f, r0	; 63
-    4232:	0f 90       	pop	r0
-    4234:	1f 90       	pop	r1
-    4236:	18 95       	reti
+    436c:	ff 91       	pop	r31
+    436e:	ef 91       	pop	r30
+    4370:	df 91       	pop	r29
+    4372:	cf 91       	pop	r28
+    4374:	bf 91       	pop	r27
+    4376:	af 91       	pop	r26
+    4378:	9f 91       	pop	r25
+    437a:	8f 91       	pop	r24
+    437c:	7f 91       	pop	r23
+    437e:	6f 91       	pop	r22
+    4380:	5f 91       	pop	r21
+    4382:	4f 91       	pop	r20
+    4384:	3f 91       	pop	r19
+    4386:	2f 91       	pop	r18
+    4388:	0f 90       	pop	r0
+    438a:	0f be       	out	0x3f, r0	; 63
+    438c:	0f 90       	pop	r0
+    438e:	1f 90       	pop	r1
+    4390:	18 95       	reti
 
-00004238 <memcpy_P>:
-    4238:	fb 01       	movw	r30, r22
-    423a:	dc 01       	movw	r26, r24
-    423c:	02 c0       	rjmp	.+4      	; 0x4242 <memcpy_P+0xa>
-    423e:	05 90       	lpm	r0, Z+
-    4240:	0d 92       	st	X+, r0
-    4242:	41 50       	subi	r20, 0x01	; 1
-    4244:	50 40       	sbci	r21, 0x00	; 0
-    4246:	d8 f7       	brcc	.-10     	; 0x423e <memcpy_P+0x6>
-    4248:	08 95       	ret
+00004392 <memcpy_P>:
+    4392:	fb 01       	movw	r30, r22
+    4394:	dc 01       	movw	r26, r24
+    4396:	02 c0       	rjmp	.+4      	; 0x439c <memcpy_P+0xa>
+    4398:	05 90       	lpm	r0, Z+
+    439a:	0d 92       	st	X+, r0
+    439c:	41 50       	subi	r20, 0x01	; 1
+    439e:	50 40       	sbci	r21, 0x00	; 0
+    43a0:	d8 f7       	brcc	.-10     	; 0x4398 <memcpy_P+0x6>
+    43a2:	08 95       	ret
 
-0000424a <_exit>:
-    424a:	f8 94       	cli
+000043a4 <_exit>:
+    43a4:	f8 94       	cli
 
-0000424c <__stop_program>:
-    424c:	ff cf       	rjmp	.-2      	; 0x424c <__stop_program>
+000043a6 <__stop_program>:
+    43a6:	ff cf       	rjmp	.-2      	; 0x43a6 <__stop_program>
