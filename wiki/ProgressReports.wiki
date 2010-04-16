@@ -5,6 +5,7 @@ As things are completed, they will be listed here and categorized by week.
 == 4/15/10 - 4/21/10 ==
  * Completed full schematic (in LTSpice's Schematic Editor)
  * Built microphone test circuit--results are poor.
+ * Improved microphone circuit with an op-amp. Result is pretty good, even with some distance.
 
 == 4/8/10 - 4/14/10 ==
  * Made flash memory tables for all possible combinations of waveform generation.
