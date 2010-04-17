@@ -96,7 +96,7 @@ int main() {
 	int8_t input_sample;
 	uint16_t analyze_output;
 	int16_t analyze_temp;
-	uint8_t start = 0;
+	uint8_t start = 0, detected=0;
 	init();
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
@@ -107,7 +107,38 @@ int main() {
 			//next_buffer = (next_buffer + 1) & 0x7;
 		}
 		if(input_ready) {
-			if(fix2int(input_buffer_resample_position + float2fix(10./4.)) < public_input_buffer_position || fix2int(input_buffer_resample_position + float2fix(10./4.)) - public_input_buffer_position > IN_BUFFER_SIZE / 2) {
+			if(fix2int(input_buffer_resample_position + float2fix(10./4.)) < public_input_buffer_position){// || fix2int(input_buffer_resample_position + float2fix(10./4.)) - public_input_buffer_position > IN_BUFFER_SIZE / 2) {
+
+				analyze_temp = sin_acc >> 2;
+				analyze_output = analyze_temp * analyze_temp;
+				analyze_temp = cos_acc >> 2;
+				analyze_output += (analyze_temp * analyze_temp);
+
+				if(analyze_output > 50) {
+					detected = 1;
+					sin_acc = cos_acc = 0;
+					memset(resample_buffer_sin, 0, sizeof(uint8_t) * 7);
+					memset(resample_buffer_cos, 0, sizeof(uint8_t) * 7);
+					if(start==0) {
+						start = 8;
+						resample_buffer_position = 7;
+						//input_buffer_resample_position += int2fix(4);
+					}
+				}
+
+				if(resample_buffer_position == 7) {
+					resample_buffer_position = 0;
+					input_buffer_resample_position += float2fix(4.);
+					if(detected && start > 0) {
+						--start;
+						UDR0='1';
+					}
+					else if(start > 0) {
+						--start;
+						UDR0='0';
+					}
+					detected = 0;
+				}
 				sin_acc -= resample_buffer_sin[resample_buffer_position];
 				input_sample = input_buffer[fix2int(input_buffer_resample_position)];
 				sin_acc += input_sample;
@@ -118,33 +149,8 @@ int main() {
 				cos_acc += input_sample;
 				resample_buffer_cos[resample_buffer_position] = input_sample;
 
-				if(++resample_buffer_position > 6) {
-					resample_buffer_position = 0;
-					//input_buffer_resample_position += float2fix(4.);
-					if(start) {
-						--start;
-						input_buffer_resample_position += int2fix(4);
-						sin_acc = cos_acc = 0;
-						memset(resample_buffer_sin, 0, sizeof(uint8_t) * 7);
-						memset(resample_buffer_cos, 0, sizeof(uint8_t) * 7);
-					}
-				}
+				++resample_buffer_position;
 				input_buffer_resample_position += float2fix(10.);
-				analyze_temp = sin_acc >> 2;
-				analyze_output = analyze_temp * analyze_temp;
-				analyze_temp = cos_acc >> 2;
-				analyze_output += (analyze_temp * analyze_temp);
-				if(analyze_output > 50) {
-					UDR0 = '-';
-					sin_acc = cos_acc = 0;
-					memset(resample_buffer_sin, 0, sizeof(uint8_t) * 7);
-					memset(resample_buffer_cos, 0, sizeof(uint8_t) * 7);
-					if(start==0) {
-						start = 8;
-						resample_buffer_position = 0;
-						input_buffer_resample_position += int2fix(4);
-					}
-				}
 			}
 			else  {
 				input_ready = 0;
