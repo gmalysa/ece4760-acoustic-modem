@@ -19,7 +19,7 @@
 
 // 6:10 fixed point math defines
 #define int2fix(a) (((uint16_t)(a))<<10)
-#define fix2int(a) ((int8_t)((a)>>10))
+#define fix2int(a) ((uint8_t)((a)>>10))
 #define float2fix(a) ((uint16_t)((a)*1024.0))
 #define fix2float(a) ((float)(a)/1024.0)
 
@@ -63,9 +63,7 @@ ISR(TIMER1_COMPA_vect) {
 	//UDR0 = ADCH;
 	ADCSRA |= _BV(ADSC);
 	public_input_buffer_position = input_buffer_pos;
-	if((input_buffer_pos & 0x1f) == 16) {
-		input_ready = 1;
-	}
+	input_ready |= ((input_buffer_pos & (NOTIFY_FREQ * 2 - 1)) == NOTIFY_FREQ);
 	input_buffer_pos = (input_buffer_pos+1) & (IN_BUFFER_SIZE - 1);
 	if(output_sample_num == 0) {
 		output_bitpattern = 0;
@@ -123,8 +121,12 @@ int main() {
 				if(++resample_buffer_position > 6) {
 					resample_buffer_position = 0;
 					//input_buffer_resample_position += float2fix(4.);
-					if(start--) {
-						input_buffer_resample_position -= int2fix(6);
+					if(start) {
+						--start;
+						input_buffer_resample_position += int2fix(4);
+						sin_acc = cos_acc = 0;
+						memset(resample_buffer_sin, 0, sizeof(uint8_t) * 7);
+						memset(resample_buffer_cos, 0, sizeof(uint8_t) * 7);
 					}
 				}
 				input_buffer_resample_position += float2fix(10.);
@@ -140,7 +142,7 @@ int main() {
 					if(start==0) {
 						start = 8;
 						resample_buffer_position = 0;
-						input_buffer_resample_position -= int2fix(6);
+						input_buffer_resample_position += int2fix(4);
 					}
 				}
 			}
