@@ -5,7 +5,9 @@ As things are completed, they will be listed here and categorized by week.
 == 4/15/10 - 4/21/10 ==
  * Completed full schematic (in LTSpice's Schematic Editor)
  * Built microphone test circuit--results are poor.
- * Improved microphone circuit with an op-amp. Result is pretty good, even with some distance.
+ * Improved microphone circuit with an op-amp. Result is pretty good, even with some distance. Gain is ~70x and somehow it does not amplify noise, despite having no reason to reject it as common mode (the inputs are not differential and are not even from the same parts).
+ * Wrote matlab detection code for semi-arbitrary starting position for a sinewave burst. Looks pretty good.
+ * Ported to C. Does not look good or work.
 
 == 4/8/10 - 4/14/10 ==
  * Made flash memory tables for all possible combinations of waveform generation.
