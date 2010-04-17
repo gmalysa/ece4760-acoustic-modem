@@ -51,7 +51,6 @@ uint8_t resample_buffer_cos_position = 0;
 int16_t sin_acc = 0, cos_acc = 0;
 uint16_t input_buffer_resample_position = 0;
 uint16_t last_input_buffer_resample_position = 0;
-uint16_t resample_increment = float2fix(10.);
 uint8_t input_buffer_pos = 0;
 void init();
 
@@ -61,8 +60,9 @@ ISR(TIMER1_COMPA_vect) {
 	PORTC = freqCache[output_sample_num];
 	output_sample_num = (output_sample_num + 1) & 0x3f;
 	PORTD |= _BV(PB7);	
+	input_buffer[input_buffer_num][input_buffer_pos] = ADCH - 128;
+	//UDR0 = ADCH;
 	ADCSRA |= _BV(ADSC);
-	input_buffer[input_buffer_num][input_buffer_pos] = ADCH - 127;
 	input_buffer_pos = (input_buffer_pos+1) & (IN_BUFFER_SIZE - 1);
 	if(output_sample_num == 0) {
 		input_buffer_num ^= 1;
@@ -97,7 +97,9 @@ int main() {
 	int8_t this_input_buffer = -1;
 	int8_t input_sin_sample, input_cos_sample;
 	uint8_t analyze = 1;
-	int16_t analyze_output, analyze_temp;
+	uint16_t analyze_output, last_analyze_output = 0; 
+	int16_t analyze_temp;
+	uint8_t start_found = 0;
 	init();
 	while(1) {
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
@@ -105,7 +107,7 @@ int main() {
 			output_buffer[next_buffer] = UDR0;
 			output_buffer_status[next_buffer] = START_BIT;
 			UDR0 = output_buffer[next_buffer];	
-			next_buffer = (next_buffer + 1) & 0x7;
+			//next_buffer = (next_buffer + 1) & 0x7;
 		}
 		if(input_ready) {
 			if(this_input_buffer < 0) {
@@ -113,9 +115,9 @@ int main() {
 			}
 			if(resample_buffer_sin_position != resample_buffer_cos_position) { // Sin and cos split buffers, so we need to do cos twice
 				cos_acc -= resample_buffer_cos[resample_buffer_cos_position];
-				input_cos_sample = input_buffer[this_input_buffer][fix2int(input_buffer_resample_position - float2fix(10./4.))];
+				input_cos_sample = input_buffer[this_input_buffer][fix2int(input_buffer_resample_position - float2fix((10./4.)*3.))];
 				cos_acc += input_cos_sample;
-				resample_buffer_cos[resample_buffer_cos_position] = input_cos_sample;
+				resample_buffer_cos[resample_buffer_cos_position++] = input_cos_sample;
 				if(resample_buffer_cos_position > 6) {
 					resample_buffer_cos_position = 0;
 				}
@@ -143,6 +145,9 @@ int main() {
 			else {
 				analyze = 0;
 			}
+			if(resample_buffer_sin_position == 0 && start_found--) {
+				input_buffer_resample_position += int2fix(4);
+			}
 			last_input_buffer_resample_position = input_buffer_resample_position;
 			input_buffer_resample_position += float2fix(10.);
 			if(input_buffer_resample_position < last_input_buffer_resample_position) { // We finished this buffer
@@ -155,9 +160,18 @@ int main() {
 			analyze_output = analyze_temp * analyze_temp;
 			analyze_temp = cos_acc >> 2;
 			analyze_output += (analyze_temp * analyze_temp);
-			if(analyze_temp > 30000) {
-				UDR0 = 'g';
+			if(analyze_output > 100){// && analyze_output < last_analyze_output) {
+				UDR0 = '-';
+				sin_acc = cos_acc = 0;
+				memset(resample_buffer_sin, 0, sizeof(uint8_t) * 7);
+				memset(resample_buffer_cos, 0, sizeof(uint8_t) * 7);
+				if(start_found == 0) {
+					start_found = 8;
+					resample_buffer_sin_position = resample_buffer_cos_position = 6;
+				}
+				//input_buffer_resample_position += float2fix(10.);
 			}
+			last_analyze_output = analyze_output;
 		}
 	}
 }
@@ -174,11 +188,13 @@ void init() {
 
 	/* Setup AD converter */
 	ADMUX = _BV(REFS0) | _BV(ADLAR);
-	ADCSRA = _BV(ADEN) | _BV(ADSC);
+	ADCSRA = _BV(ADEN) | _BV(ADSC) | 6;
 
 	/* Setup UART */
 	UCSR0B = _BV(RXEN0) | _BV(TXEN0);	// Enable receive and transmit
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);		// Set 8-bit frames
+	//UCSR0A = _BV(U2X0);
+
 	UBRR0 = 520;	// Set baud rate to 2400
 
 	sei();
