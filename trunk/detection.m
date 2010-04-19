@@ -8,13 +8,14 @@ hold on;
 fs = 40000;
 f = 4000;
 buflen = 7;
+offset = 27;
 
 % Sample input, with some amount of offset from the start of our buffer
 data = hann(64)' .* cos(2*pi*(f/fs)*[0:63]) * 128;
 input = zeros(1, 1024);
-input(20:83) = data;
-input(84:147) = data;
-input(212:275) = data;
+input(offset:offset+63) = data;
+input(offset+64:offset+63+64) = data;
+input(offset+64+64+64:offset+63+64+64+64) = data;
 
 % Add noise for fun
 input = input + 8*randn(1, 1024);
@@ -102,4 +103,3 @@ plot(input, 'b');
 subplot(2, 1, 2);
 plot([1:512], 0, 'k');
 %plot(is, rs, 'r');
-
