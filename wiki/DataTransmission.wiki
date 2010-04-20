@@ -1,0 +1,16 @@
+#summary How data is encoded and decoded acoustically
+
+= Introduction =
+
+Our basic encoding scheme is a variant on what is known as [http://en.wikipedia.org/wiki/On-off_keying On-Off Keying], where a single frequency's presence or absence is used to encode a zero or a one bit. In a manner similar to the RS-232 serial protocol, we transmit data in 10-bit frames, consisting of one start bit, 8 bits of data, and one stop bit. The start bit is always a 1, and is used to capture the beginning of the frame more precisely, while the stop bit is a zero to ensure that there will be another low-to-high transition in order to re-lock the tracking and prevent errors in the allocation of bit windows from accumulating across several bytes.
+
+In addition, we intend on using multiple frequencies in parallel to transmit a higher volume of data using the same modulation scheme for each frequency. The bandwidth is limited by a number of factors including the processing power of our target platform, the Atmega 644, and the sound producing capabilities of the speakers and microphones we are using: 100 Hz - 20 kHz. In order to meet the Nyquist rate for these speakers and microphones, we are sampling at 40 kHz, which leaves 500 cycles (with a 20 MHz crystal oscillator) for computation per sample, which must include both synthesis and decoding for all frequencies. The Atmega 644 is an 8-bit RISC microcontroller with hardware support for multiplication but no native floating point capabilities.
+
+= Frequency Selection and Pulse Design =
+TODO.
+
+= Waveform Generation on the Atmega644 =
+TODO.
+
+= Duplex and Multicast Communications =
+TODO.
