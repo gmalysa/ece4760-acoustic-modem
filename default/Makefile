@@ -8,12 +8,14 @@ MCU = atmega644
 TARGET = final.elf
 CC = avr-gcc
 
+CPP = avr-g++
+
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99             -DF_CPU=20000000UL -O2 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+CFLAGS += -Wall -gdwarf-2 -std=gnu99                 -DF_CPU=20000000UL -O2 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
