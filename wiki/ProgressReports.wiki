@@ -5,6 +5,7 @@ As things are completed, they will be listed here and categorized by week.
 == 4/22/10 - 4/29/10 ==
  * Managed to get real data dumps off the AVR with some sketchy serial code.
  * Revamped the matlab script to correctly trigger on aforementioned real data.
+ * Successful transmission with a bit-error rate of less than 5%, up to 5 inches.
 
 == 4/15/10 - 4/21/10 ==
  * Completed full schematic (in LTSpice's Schematic Editor)
