@@ -8,8 +8,6 @@ MCU = atmega644
 TARGET = final.elf
 CC = avr-gcc
 
-CPP = avr-g++
-
 ## Options common to compile, link and assembly rules
 COMMON = -mmcu=$(MCU)
 
