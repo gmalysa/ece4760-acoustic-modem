@@ -31,6 +31,7 @@
 // Decoding defines
 #define IN_BUFFER_SIZE 64
 #define NOTIFY_FREQ 16
+#define THRESH 6000
 
 // Send variables
 uint8_t output_sample_num = 0;
@@ -40,7 +41,13 @@ uint8_t next_buffer = 0;
 uint8_t output_bitpattern = 0;
 uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b00010000, 0b00100000, 0b01000000, 0b10000000};
 uint8_t freqCache[64];
-int8_t debugCache[640];
+
+// Debug variables
+#ifdef DEBUG
+	int8_t debugCache[640];
+	uint16_t sample_dump_counter = 640;
+	volatile uint16_t dbg_counter = 0;
+#endif
 
 const uint16_t f4000_increment = float2fix(10.);
 const uint16_t f4000_quarterphase = float2fix(2.5);
@@ -55,8 +62,6 @@ int16_t sin_acc = 0, cos_acc = 0;
 uint16_t input_buffer_resample_position = 0;
 uint8_t input_buffer_pos = 0;
 volatile uint8_t public_input_buffer_position = 0;
-uint16_t sample_dump_counter = 640;
-volatile uint16_t dbg_counter = 0;
 void init();
 
 ISR(TIMER1_COMPA_vect) {
@@ -66,14 +71,16 @@ ISR(TIMER1_COMPA_vect) {
 	output_sample_num = (output_sample_num + 1) & 0x3f;
 	PORTD |= _BV(PB7);	
 	input_buffer[input_buffer_pos] = ADCH - 0x7F;
-	if (input_buffer[input_buffer_pos] > 5 || input_buffer[input_buffer_pos] < -5 || sample_dump_counter < 640) {
-		if (sample_dump_counter == 640) {
-			sample_dump_counter = 0;
-			dbg_counter = 640;
+	#ifdef DEBUG
+		if (input_buffer[input_buffer_pos] > 5 || input_buffer[input_buffer_pos] < -5 || sample_dump_counter < 640) {
+			if (sample_dump_counter == 640) {
+				sample_dump_counter = 0;
+				dbg_counter = 640;
+			}
+			debugCache[sample_dump_counter] = input_buffer[input_buffer_pos];
+			sample_dump_counter++;
 		}
-		debugCache[sample_dump_counter] = input_buffer[input_buffer_pos];
-		sample_dump_counter++;
-	}
+	#endif
 	ADCSRA |= _BV(ADSC);
 	public_input_buffer_position = input_buffer_pos;
 	//input_ready |= ((input_buffer_pos & (NOTIFY_FREQ * 2 - 1)) == NOTIFY_FREQ);
@@ -111,19 +118,20 @@ ISR(TIMER1_COMPB_vect, ISR_NAKED) {
 
 int main() {
 	int8_t input_sample;
-	int32_t analyze_output;
-	int16_t analyze_temp;
-	uint8_t start = 0, detected=0;
+	int32_t analyze_output = 0;
+	uint8_t start = 0;
 	uint8_t x =0, i=0;
+	uint8_t output_char = 0;
 	init();
 	while(1) {
-		while (dbg_counter) {
-			if (UCSR0A & _BV(UDRE0)) {
-				UDR0 = debugCache[640-dbg_counter];
-				dbg_counter--;
+		#ifdef DEBUG
+			while (dbg_counter) {
+				if (UCSR0A & _BV(UDRE0)) {
+					UDR0 = debugCache[640-dbg_counter];
+					dbg_counter--;
+				}
 			}
-		}
-		
+		#endif
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
 			while(output_buffer_status[next_buffer] != IDLE) {;}
 			output_buffer[next_buffer] = UDR0;
@@ -131,82 +139,78 @@ int main() {
 			//UDR0 = output_buffer[next_buffer];	
 			//next_buffer = (next_buffer + 1) & 0x7;
 		}
-		//if(input_ready) {
-			x = fix2int(input_buffer_resample_position + f4000_quarterphase);
-			if((x <= public_input_buffer_position && public_input_buffer_position - x <= 10) ||
-			   (x > public_input_buffer_position && x - public_input_buffer_position > 10)) {
-				//UDR0 = public_input_buffer_position;
-				sin_acc -= resample_buffer_sin[resample_buffer_position];
-				input_sample = input_buffer[fix2int(input_buffer_resample_position)];
-				sin_acc += input_sample;
-				resample_buffer_sin[resample_buffer_position] = input_sample;
-				//if (input_sample > 5 || input_sample < -5)
-				//	UDR0 = input_sample;
-				//UDR0 = sin_acc;
+		x = fix2int(input_buffer_resample_position + f4000_quarterphase);
+		if((x <= public_input_buffer_position && public_input_buffer_position - x <= 10) ||
+		   (x > public_input_buffer_position && x - public_input_buffer_position > 10)) {
+			//UDR0 = public_input_buffer_position;
+			sin_acc -= resample_buffer_sin[resample_buffer_position];
+			input_sample = input_buffer[fix2int(input_buffer_resample_position)];
+			sin_acc += input_sample;
+			resample_buffer_sin[resample_buffer_position] = input_sample;
+			//if (input_sample > 5 || input_sample < -5)
+			//	UDR0 = input_sample;
+			//UDR0 = sin_acc;
 
-				cos_acc -= resample_buffer_cos[resample_buffer_position];
-				input_sample = input_buffer[fix2int(input_buffer_resample_position + f4000_quarterphase)];
-				cos_acc += input_sample;
-				resample_buffer_cos[resample_buffer_position] = input_sample;
-				//UDR0 = input_sample;
-				//UDR0 = cos_acc;
+			cos_acc -= resample_buffer_cos[resample_buffer_position];
+			input_sample = input_buffer[fix2int(input_buffer_resample_position + f4000_quarterphase)];
+			cos_acc += input_sample;
+			resample_buffer_cos[resample_buffer_position] = input_sample;
+			//UDR0 = input_sample;
+			//UDR0 = cos_acc;
 
-				analyze_temp = sin_acc;// >> 2;
-				//UDR0 = analyze_temp;
-				analyze_output = analyze_temp * analyze_temp;
-				analyze_temp = cos_acc;// >> 2;
-				//UDR0 = analyze_temp;
-				analyze_output += (analyze_temp * analyze_temp);
+			if(start == 0 || (start > 0 && resample_buffer_position == 6)) {
+				analyze_output = (sin_acc * sin_acc) + (cos_acc * cos_acc);
+			}
+			else {
+				analyze_output = 0;
+			}	
 
-				if(analyze_output > 6400) {
-					detected = 1;
+			if(analyze_output > THRESH && start == 0) {
+				sin_acc = cos_acc = 0;
+				/*for(i=0; i<7; ++i) {
+					resample_buffer_sin[i] = 0;
+					resample_buffer_cos[i] = 0;
+				}*/
+				start = 9;
+				output_char = 0;
+				resample_buffer_position = 6;
+				input_buffer_resample_position += int2fix(10);
+			}
+
+			if(resample_buffer_position++ == 6) {
+				resample_buffer_position = 0;
+				//input_buffer_resample_position -= float2fix(4.);
+				if (start > 0) {
+					output_char = output_char << 1;
+					if(analyze_output > THRESH) {
+						output_char |= 1;
+					}
 					sin_acc = cos_acc = 0;
 					for(i=0; i<7; ++i) {
 						resample_buffer_sin[i] = 0;
 						resample_buffer_cos[i] = 0;
 					}
-					if(start==0) {
-						start = 9;
-						resample_buffer_position = 6;
+					input_buffer_resample_position -= int2fix(6);
+					if(--start == 0) {
+						UDR0 = output_char;
 					}
 				}
-
-				if(resample_buffer_position++ == 6) {
-					resample_buffer_position = 0;
-					//input_buffer_resample_position -= float2fix(4.);
-					if (start > 0) {
-						sin_acc = cos_acc = 0;
-					for(i=0; i<7; ++i) {
-						resample_buffer_sin[i] = 0;
-						resample_buffer_cos[i] = 0;
-					}
-					}
-					if (start > 0) {
-						//UDR0 = analyze_output >> 8;
-						//UDR0 = analyze_output;
-					}
-					
-					if(detected && start > 0) {
-						--start;
-						//UDR0='1';
-						input_buffer_resample_position += int2fix(4);
-						resample_buffer_position = 1;
-					}
-					else if(start > 0) {
-						--start;
-						input_buffer_resample_position += int2fix(4);
-						resample_buffer_position = 1;
-						//UDR0='0';
-					}
-					detected = 0;
+				/*if(detected && start > 0) {
+					--start;
+					//UDR0='1';
+					input_buffer_resample_position += int2fix(4);
+					resample_buffer_position = 1;
 				}
-
-				input_buffer_resample_position += f4000_increment;
+				else if(start > 0) {
+					--start;
+					input_buffer_resample_position += int2fix(4);
+					resample_buffer_position = 1;
+					//UDR0='0';
+				}
+				detected = 0;*/
 			}
-			/*else  {
-				input_ready = 0;
-			}
-		}*/
+			input_buffer_resample_position += f4000_increment;
+		}
 	}
 }
 
@@ -227,9 +231,9 @@ void init() {
 	/* Setup UART */
 	UCSR0B = _BV(RXEN0) | _BV(TXEN0);	// Enable receive and transmit
 	UCSR0C = _BV(UCSZ01) | _BV(UCSZ00);		// Set 8-bit frames
-	UCSR0A = _BV(U2X0);
+	//UCSR0A = _BV(U2X0);
 
-	UBRR0 = 10;	// Set baud rate to 2400
+	UBRR0 = 129;	// Set baud rate to 2400
 
 	//memset(resample_buffer_sin, 0, sizeof(int8_t) * 7);
 	//memset(resample_buffer_cos, 0, sizeof(int8_t) * 7);
