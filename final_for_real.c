@@ -40,6 +40,7 @@ uint8_t next_buffer = 0;
 uint8_t output_bitpattern = 0;
 uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b00010000, 0b00100000, 0b01000000, 0b10000000};
 uint8_t freqCache[64];
+int8_t debugCache[640];
 
 const uint16_t f4000_increment = float2fix(10.);
 const uint16_t f4000_quarterphase = float2fix(2.5);
@@ -54,6 +55,8 @@ int16_t sin_acc = 0, cos_acc = 0;
 uint16_t input_buffer_resample_position = 0;
 uint8_t input_buffer_pos = 0;
 volatile uint8_t public_input_buffer_position = 0;
+uint16_t sample_dump_counter = 640;
+volatile uint16_t dbg_counter = 0;
 void init();
 
 ISR(TIMER1_COMPA_vect) {
@@ -63,13 +66,20 @@ ISR(TIMER1_COMPA_vect) {
 	output_sample_num = (output_sample_num + 1) & 0x3f;
 	PORTD |= _BV(PB7);	
 	input_buffer[input_buffer_pos] = ADCH - 0x7F;
-	//UDR0 = input_buffer[input_buffer_pos];
+	if (input_buffer[input_buffer_pos] > 5 || input_buffer[input_buffer_pos] < -5 || sample_dump_counter < 640) {
+		if (sample_dump_counter == 640) {
+			sample_dump_counter = 0;
+			dbg_counter = 640;
+		}
+		debugCache[sample_dump_counter] = input_buffer[input_buffer_pos];
+		sample_dump_counter++;
+	}
 	ADCSRA |= _BV(ADSC);
 	public_input_buffer_position = input_buffer_pos;
 	//input_ready |= ((input_buffer_pos & (NOTIFY_FREQ * 2 - 1)) == NOTIFY_FREQ);
 	input_buffer_pos = (input_buffer_pos+1) & (IN_BUFFER_SIZE - 1);
 	if(output_sample_num == 0) {
-		PORTD ^= _BV(PB5);	// Toggle this so we know our burst period
+		//PORTD ^= _BV(PB5);	// Toggle this so we know our burst period
 		output_bitpattern = 0;
 		for(i=0; i<8; ++i) {
 			if(output_buffer_status[i] == IDLE) {continue;}
@@ -107,6 +117,13 @@ int main() {
 	uint8_t x =0, i=0;
 	init();
 	while(1) {
+		while (dbg_counter) {
+			if (UCSR0A & _BV(UDRE0)) {
+				UDR0 = debugCache[640-dbg_counter];
+				dbg_counter--;
+			}
+		}
+		
 		if(UCSR0A & _BV(RXC0)) {	// We've received a serial byte
 			while(output_buffer_status[next_buffer] != IDLE) {;}
 			output_buffer[next_buffer] = UDR0;
@@ -123,7 +140,8 @@ int main() {
 				input_sample = input_buffer[fix2int(input_buffer_resample_position)];
 				sin_acc += input_sample;
 				resample_buffer_sin[resample_buffer_position] = input_sample;
-				//UDR0 = input_sample;
+				//if (input_sample > 5 || input_sample < -5)
+				//	UDR0 = input_sample;
 				//UDR0 = sin_acc;
 
 				cos_acc -= resample_buffer_cos[resample_buffer_position];
@@ -148,7 +166,7 @@ int main() {
 						resample_buffer_cos[i] = 0;
 					}
 					if(start==0) {
-						start = 10;
+						start = 9;
 						resample_buffer_position = 6;
 					}
 				}
@@ -164,19 +182,21 @@ int main() {
 					}
 					}
 					if (start > 0) {
-					//	UDR0 = analyze_output >> 8;
+						//UDR0 = analyze_output >> 8;
 						//UDR0 = analyze_output;
 					}
 					
 					if(detected && start > 0) {
 						--start;
-						UDR0='1';
+						//UDR0='1';
 						input_buffer_resample_position += int2fix(4);
+						resample_buffer_position = 1;
 					}
 					else if(start > 0) {
 						--start;
 						input_buffer_resample_position += int2fix(4);
-						UDR0='0';
+						resample_buffer_position = 1;
+						//UDR0='0';
 					}
 					detected = 0;
 				}
