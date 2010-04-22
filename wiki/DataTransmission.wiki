@@ -10,7 +10,13 @@ In addition, we intend on using multiple frequencies in parallel to transmit a h
 TODO.
 
 = Waveform Generation on the Atmega644 =
-TODO.
+Generating a waveform of any quality is normally a very time-consuming task. With a target sampling frequency of 40 kHz, there are approximately 500 cycles available per sample, which must handle all synthesis, signal processing, and serial communications. Serial communications will be infrequent compared to the sampling rate, luckily, so they can largely be ignored, leaving on average the full 500 cycles for synthesis and signal processing.
+
+Because all of the frequencies that must be synthesized are known beforehand, and each pulse has a particular shape and precise duration, it is easiest to simply store all possible waveforms in flash memory. The Atmega644 has 64 KB of flash memory for program and non-volatile data--of this, we use approximately 32 KB to store pre-computed burst patterns corresponding to all possible combinations of frequency.
+
+When a byte is received over serial, it is added to the output buffer on the next available frequency channel. Then, as bit boundaries are reached in the transmit routine, a new set of 64 samples is selected from flash memory based on which bits need to be transmitted and copied into RAM (which has a lower access latency, to speed things up a bit later...this may actually be a waste of time).
+
+For each sample that is synthesized, Digital-to-Analog conversion is handled by an AD7801 parallel 8-bit DAC. This chip is connected to all of PORTC, which is driven in one cycle with the sample value read from flash memory. The appropriate bits are strobed on the DAC to load the new sample into its output and D/A conversion is complete. 8-bits of output plus a little bit of filtering in hardware has proven to produce a sufficiently recognizable waveform for our purposes. This synthesis method was chosen to be as simple as possible and hopefully have as low an overhead as possible in order to reserve more cycles for the signal processing algorithms, while still providing some quality (arguably more than DDS through PWM).
 
 = Duplex and Multicast Communications =
 TODO.
