@@ -8,16 +8,15 @@ hold on;
 fs = 40000;
 f = 4000;
 buflen = 7;
-offset = 26;
 thresh = 2000;
 derv_thresh = 6;
 
 % Sample input, with some amount of offset from the start of our buffer
-data = hann(64)' .* 40 .*cos(2*pi*(f/fs)*[0:63]);
-input = zeros(1, 1024);
-input(offset:offset+63) = data;
-input(offset+64:offset+63+64) = data;
-input(offset+64+64+64:offset+63+64+64+64) = data;
+% data = hann(64)' .* 40 .*cos(2*pi*(f/fs)*[0:63]);
+% input = zeros(1, 1024);
+% input(offset:offset+63) = data;
+% input(offset+64:offset+63+64) = data;
+% input(offset+64+64+64:offset+63+64+64+64) = data;
 
 try
     serial = serial('COM4', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
@@ -46,8 +45,8 @@ clear serial;
 %input = input + 4*randn(1, 1024);
 
 % Run input through resampler
-j = 1;
-k = 1 + fs/(4*f);
+j = 1 + 8.*rand(1,1);
+k = j + fs/(4*f);
 step = fs/f;
 i = 1;
 l = 1;
@@ -62,16 +61,20 @@ samples = 0;
 detected = 0;
 prev_csum = 0;
 prev_ssum = 0;
+prev_derv_csum = 0;
+prev_derv_ssum = 0;
 while (k < length(input))
     % Find integer offsets
     cIndex = floor(j);
     sIndex = floor(k);
     
     % Update running structures
+    prev_derv_csum = prev_csum - csum;
     prev_csum = csum;
     csum = csum - rc(i);
     rc(i) = input(cIndex);
     csum = csum + rc(i);
+    prev_derv_ssum = prev_ssum - ssum;
     prev_ssum = ssum;
     ssum = ssum - rs(i);
     rs(i) = input(sIndex);
@@ -89,12 +92,18 @@ while (k < length(input))
     % Attempt detection
     trigger = 0;
     if (csum^2 + ssum^2) > thresh
-        if abs(csum) > abs(ssum) 
-            if (prev_csum - csum) < derv_thresh && (prev_csum - csum) > -derv_thresh
+        if abs(csum) > abs(ssum)
+            subplot(2, 1, 1);
+            plot(j, -140, 'bx');
+            if ((prev_csum - csum) >= 0 && prev_derv_csum < 0) || ((prev_csum - csum) < 0 && prev_derv_csum >= 0)
+                plot(j, -150, 'kx');
                 trigger = 1;
             end
         else
-            if (prev_ssum - ssum) < derv_thresh && (prev_ssum - ssum) > -derv_thresh
+            subplot(2, 1, 1);
+            plot(j, 120, 'rx');
+            if ((prev_ssum - ssum) >= 0 && prev_derv_ssum < 0) || ((prev_ssum - ssum) < 0 && prev_derv_ssum >= 0)
+                plot(j, 130, 'kx');
                 trigger = 1;
             end
         end
@@ -105,8 +114,8 @@ while (k < length(input))
 %             ssum = 0;
             samples = buflen;
             start = 9;
-%            j = j + 10;
-%            k = k + 10;
+%            j = j - 10;
+%            k = k - 10;
         end
     end
     
