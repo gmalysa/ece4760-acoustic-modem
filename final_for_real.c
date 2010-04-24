@@ -46,7 +46,7 @@ uint8_t freqCache[64];
 // Debug variables
 //#define DEBUG_DUMP
 //#define DEBUG_THRESH
-#define DEBUG_RS_DUMP
+//#define DEBUG_RS_DUMP
 #if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
 	int8_t debugCache[1024];
 	volatile uint16_t debugCache_p = 0;
@@ -147,8 +147,8 @@ int main() {
 			//next_buffer = (next_buffer + 1) & 0x7;
 		}
 		x = fix2int(input_buffer_resample_position + f4000_quarterphase);
-		if((x <= public_input_buffer_position && public_input_buffer_position - x <= 10) ||
-		   (x > public_input_buffer_position && x - public_input_buffer_position > 10)) {
+		if((x <= public_input_buffer_position && public_input_buffer_position - x <= 20) ||
+		   (x > public_input_buffer_position && x - public_input_buffer_position > 20)) {
 			#if defined(DEBUG_RS_DUMP)
 				if(debug_enabled) {
 					debugCache[debugCache_p] = input_buffer[fix2int(input_buffer_resample_position)];
@@ -252,7 +252,7 @@ void init() {
 		UCSR0A = _BV(U2X0);
 		UBRR0 = 10;		// Set baud rate to 230400
 	#else
-		UBRR0 = 520;	// Set baud rate to 9600
+		UBRR0 = 520;	// Set baud rate to 2400
 	#endif
 
 	sei();
