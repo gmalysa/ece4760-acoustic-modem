@@ -7,6 +7,8 @@ As things are completed, they will be listed here and categorized by week.
  * Revamped the matlab script to correctly trigger on aforementioned real data.
  * Successful transmission with a bit-error rate of less than 5%, up to 5 inches.
  * Some documentation for website/report.
+ * Fixed problems, system works really well with new triggering code and fixed buffer traversal.
+ * Some assembly of more permanent version of a transmit/receive unit.
 
 == 4/15/10 - 4/21/10 ==
  * Completed full schematic (in LTSpice's Schematic Editor)
