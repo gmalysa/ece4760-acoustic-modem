@@ -205,7 +205,6 @@ int main() {
 
 			if(resample_buffer_position++ == 6) {
 				resample_buffer_position = 0;
-				//input_buffer_resample_position -= float2fix(4.);
 				if (start > 0) {
 					#ifdef DEBUG_THRESH
 						UDR0 =  analyze_output >> 8;

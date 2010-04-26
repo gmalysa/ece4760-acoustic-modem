@@ -3,29 +3,28 @@ final.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000014  00800100  00004552  000045e6  2**0
+  0 .data         00000014  00800100  00004552  000045c6  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         00004552  00000000  00000000  00000094  2**1
+  1 .text         00004552  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          000000ab  00800114  00800114  000045fa  2**0
+  2 .bss          000000ab  00800114  00004566  000045da  2**0
                   ALLOC
-  3 .debug_aranges 00000020  00000000  00000000  000045fa  2**0
+  3 .debug_aranges 00000020  00000000  00000000  000045da  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_pubnames 00000236  00000000  00000000  0000461a  2**0
+  4 .debug_pubnames 00000236  00000000  00000000  000045fa  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   0000041d  00000000  00000000  00004850  2**0
+  5 .debug_info   0000041d  00000000  00000000  00004830  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 0000017c  00000000  00000000  00004c6d  2**0
+  6 .debug_abbrev 0000017c  00000000  00000000  00004c4d  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   00000405  00000000  00000000  00004de9  2**0
+  7 .debug_line   0000040b  00000000  00000000  00004dc9  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  00000050  00000000  00000000  000051f0  2**2
+  8 .debug_frame  00000050  00000000  00000000  000051d4  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    0000024c  00000000  00000000  00005240  2**0
+  9 .debug_str    0000027a  00000000  00000000  00005224  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    00000089  00000000  00000000  0000548c  2**0
+ 10 .debug_loc    00000089  00000000  00000000  0000549e  2**0
                   CONTENTS, READONLY, DEBUGGING
-
 Disassembly of section .text:
 
 00000000 <__vectors>:
@@ -1129,27 +1128,29 @@ Disassembly of section .text:
     40aa:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
 000040ae <__vector_14>:
+		}
+		memcpy_P(freqCache, freqTable[output_bitpattern], sizeof(uint8_t) * 64);
 	}
 }
 
 ISR(TIMER1_COMPB_vect, ISR_NAKED) {
+    40ae:	78 94       	sei
 	//PORTD ^= (1 << PB2);
 	sei();
-    40ae:	78 94       	sei
 	sleep_cpu();
     40b0:	88 95       	sleep
 	reti();
     40b2:	18 95       	reti
 
 000040b4 <init>:
-		}
+}
+    40b4:	8f ef       	ldi	r24, 0xFF	; 255
+    40b6:	87 b9       	out	0x07, r24	; 7
 	}
 }
 
 void init() {
 	DDRC = 0xff;
-    40b4:	8f ef       	ldi	r24, 0xFF	; 255
-    40b6:	87 b9       	out	0x07, r24	; 7
 	DDRD = _BV(PB7) | _BV(PB2) | _BV(PB1) | _BV(PB0);
     40b8:	87 e8       	ldi	r24, 0x87	; 135
     40ba:	8a b9       	out	0x0a, r24	; 10
@@ -1877,10 +1878,10 @@ ISR(TIMER1_COMPA_vect) {
     4500:	60 2d       	mov	r22, r0
     4502:	60 59       	subi	r22, 0x90	; 144
     4504:	7f 4f       	sbci	r23, 0xFF	; 255
-    4506:	8f e7       	ldi	r24, 0x7F	; 127
-    4508:	91 e0       	ldi	r25, 0x01	; 1
-    450a:	40 e4       	ldi	r20, 0x40	; 64
-    450c:	50 e0       	ldi	r21, 0x00	; 0
+    4506:	40 e4       	ldi	r20, 0x40	; 64
+    4508:	50 e0       	ldi	r21, 0x00	; 0
+    450a:	8f e7       	ldi	r24, 0x7F	; 127
+    450c:	91 e0       	ldi	r25, 0x01	; 1
     450e:	0e 94 9e 22 	call	0x453c	; 0x453c <memcpy_P>
 	}
 }
