@@ -31,8 +31,7 @@
 // Decoding defines
 #define IN_BUFFER_SIZE 64
 #define NOTIFY_FREQ 16
-#define THRESH 2000
-#define DERIVATIVE_THRESH 6
+#define THRESH 5000
 
 // Send variables
 uint8_t output_sample_num = 0;
@@ -59,8 +58,42 @@ const uint16_t f4000_increment = float2fix(10.);
 const uint16_t f4000_quarterphase = float2fix(2.5);
 
 // Receive variables
+struct recv_param_t {
+	int8_t *resample_buffer_sin;
+	int8_t *resample_buffer_cos;
+	uint8_t resample_buffer_position;
+	int16_t sin_acc;
+	int16_t cos_acc;
+	int16_t prev_sin_acc;
+	int16_t prev_cos_acc;
+	int16_t last_derv_sin;
+	int16_t last_derv_cos;
+	uint16_t input_buffer_resample_position;
+	uint8_t resample_buffer_size;
+	uint16_t input_buffer_increment;
+	uint16_t input_buffer_quarterphase;
+	uint16_t boundary_alignment;
+	uint8_t start;
+	uint8_t output_char;
+};
+int8_t resample_buffer_sin_4000[7];
+int8_t resample_buffer_cos_4000[7];
+int8_t resample_buffer_sin_6000[10];
+int8_t resample_buffer_cos_6000[10];
+/*int8_t resample_buffer_sin_7000[12];
+int8_t resample_buffer_cos_7000[12];
+int8_t resample_buffer_sin_9000[15];
+int8_t resample_buffer_cos_9000[15];
+int8_t resample_buffer_sin_10000[16];
+int8_t resample_buffer_cos_10000[16];
+int8_t resample_buffer_sin_11000[18];
+int8_t resample_buffer_cos_11000[18];
+int8_t resample_buffer_sin_13000[21];
+int8_t resample_buffer_cos_13000[21];
+int8_t resample_buffer_sin_13000[24];
+int8_t resample_buffer_cos_13000[24];*/
+struct recv_param_t recv_params[2];
 volatile int8_t input_buffer[IN_BUFFER_SIZE];
-volatile uint8_t input_ready = 0;
 int8_t resample_buffer_sin[7] = {0,0,0,0,0,0,0};
 int8_t resample_buffer_cos[7] = {0,0,0,0,0,0,0};
 uint8_t resample_buffer_position = 0;
@@ -69,6 +102,7 @@ uint16_t input_buffer_resample_position = 0;
 uint8_t input_buffer_pos = 0;
 volatile uint8_t public_input_buffer_position = 0;
 void init();
+void find_freq(uint8_t);
 
 ISR(TIMER1_COMPA_vect) {
 	uint8_t i;
@@ -120,11 +154,7 @@ ISR(TIMER1_COMPB_vect, ISR_NAKED) {
 }
 
 int main() {
-	int8_t input_sample;
-	int32_t analyze_output = 0;
-	uint8_t start = 0;
-	uint8_t x =0;
-	uint8_t output_char = 0;
+	uint8_t i = 0;
 	init();
 	while(1) {
 		#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
@@ -146,87 +176,86 @@ int main() {
 			output_buffer_status[next_buffer] = START_BIT;	
 			//next_buffer = (next_buffer + 1) & 0x7;
 		}
-		x = fix2int(input_buffer_resample_position + f4000_quarterphase);
-		if((x <= public_input_buffer_position && public_input_buffer_position - x <= 20) ||
-		   (x > public_input_buffer_position && x - public_input_buffer_position > 20)) {
-			#if defined(DEBUG_RS_DUMP)
-				if(debug_enabled) {
-					debugCache[debugCache_p] = input_buffer[fix2int(input_buffer_resample_position)];
-					debugCache_p = (debugCache_p + 1) & 0x3ff;
-					if(offset_timer > 0) {
-						++offset_timer;
-					}
+		for(i=0; i<2; ++i) {
+			find_freq(i);
+		}
+	}
+}
+
+void find_freq(uint8_t i) {
+	int8_t input_sample = 0;
+	int32_t analyze_output;
+	uint8_t x = fix2int(recv_params[i].input_buffer_resample_position + recv_params[i].input_buffer_quarterphase);
+	
+	if((x <= public_input_buffer_position && public_input_buffer_position - x <= 30) ||
+	   (x > public_input_buffer_position && x - public_input_buffer_position > 30)) {
+		recv_params[i].last_derv_sin = recv_params[i].prev_sin_acc - recv_params[i].sin_acc;
+		recv_params[i].prev_sin_acc = recv_params[i].sin_acc;
+		recv_params[i].sin_acc -= recv_params[i].resample_buffer_sin[recv_params[i].resample_buffer_position];
+		input_sample = input_buffer[fix2int(recv_params[i].input_buffer_resample_position)];
+		recv_params[i].sin_acc += input_sample;
+		recv_params[i].resample_buffer_sin[recv_params[i].resample_buffer_position] = input_sample;
+
+		recv_params[i].last_derv_cos = recv_params[i].prev_cos_acc - recv_params[i].cos_acc;
+		recv_params[i].prev_cos_acc = recv_params[i].cos_acc;
+		recv_params[i].cos_acc -= recv_params[i].resample_buffer_cos[recv_params[i].resample_buffer_position];
+		input_sample = input_buffer[fix2int(recv_params[i].input_buffer_resample_position + recv_params[i].input_buffer_quarterphase)];
+		recv_params[i].cos_acc += input_sample;
+		recv_params[i].resample_buffer_cos[recv_params[i].resample_buffer_position] = input_sample;
+
+		if(recv_params[i].start == 0 || (recv_params[i].start > 0 && recv_params[i].resample_buffer_position == recv_params[i].resample_buffer_size)) {
+			analyze_output = (recv_params[i].sin_acc * recv_params[i].sin_acc) + (recv_params[i].cos_acc * recv_params[i].cos_acc);
+		}
+		else {
+			analyze_output = 0;
+		}	
+
+		if(analyze_output > THRESH && recv_params[i].start == 0) {
+			#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)	//TODO: fix debug
+				if(offset_timer == 0) {
+					offset_timer = 1;
 				}
 			#endif
-
-			last_derv_sin = prev_sin_acc - sin_acc;
-			prev_sin_acc = sin_acc;
-			sin_acc -= resample_buffer_sin[resample_buffer_position];
-			input_sample = input_buffer[fix2int(input_buffer_resample_position)];
-			sin_acc += input_sample;
-			resample_buffer_sin[resample_buffer_position] = input_sample;
-
-			last_derv_cos = prev_cos_acc - cos_acc;
-			prev_cos_acc = cos_acc;
-			cos_acc -= resample_buffer_cos[resample_buffer_position];
-			input_sample = input_buffer[fix2int(input_buffer_resample_position + f4000_quarterphase)];
-			cos_acc += input_sample;
-			resample_buffer_cos[resample_buffer_position] = input_sample;
-
-			if(start == 0 || (start > 0 && resample_buffer_position == 6)) {
-				analyze_output = (sin_acc * sin_acc) + (cos_acc * cos_acc);
+			if(abs(recv_params[i].sin_acc) > abs(recv_params[i].cos_acc)) {
+				if(((recv_params[i].prev_sin_acc - recv_params[i].sin_acc) ^ recv_params[i].last_derv_sin) & 0x8000) {
+					recv_params[i].start = 9;
+				}
 			}
 			else {
-				analyze_output = 0;
-			}	
-
-			if(analyze_output > THRESH && start == 0) {
-				#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
-					if(offset_timer == 0) {
-						offset_timer = 1;
-					}
-				#endif
-				if(abs(sin_acc) > abs(cos_acc)) {
-					if(((prev_sin_acc - sin_acc) ^ last_derv_sin) & 0x8000) {
-						start = 9;
-					}
-				}
-				else {
-					if(((prev_cos_acc - cos_acc) ^ last_derv_cos) & 0x8000) {
-						start = 9;
-					}
-				}
-				if(start == 9) {
-					output_char = 0;
-					resample_buffer_position = 6;
-					input_buffer_resample_position -= int2fix(4);
+				if(((recv_params[i].prev_cos_acc - recv_params[i].cos_acc) ^ recv_params[i].last_derv_cos) & 0x8000) {
+					recv_params[i].start = 9;
 				}
 			}
-
-			if(resample_buffer_position++ == 6) {
-				resample_buffer_position = 0;
-				if (start > 0) {
-					#ifdef DEBUG_THRESH
-						UDR0 =  analyze_output >> 8;
-					#endif
-					output_char = output_char << 1;
-					if(analyze_output > THRESH) {
-						output_char |= 1;
-					}
-					sin_acc = cos_acc = 0;
-					memset(resample_buffer_sin, 0, sizeof(int8_t) * 7);
-					memset(resample_buffer_cos, 0, sizeof(int8_t) * 7);
-					input_buffer_resample_position -= int2fix(6);
-					if(--start == 0) {
-						#if !defined(DEBUG_DUMP) && !defined(DEBUG_THRESH) && !defined(DEBUG_RS_DUMP)
-							UDR0 = output_char;
-						#endif
-						prev_sin_acc = prev_cos_acc = last_derv_sin = last_derv_cos = 0;
-					}
-				}
+			if(recv_params[i].start == 9) {
+				recv_params[i].output_char = 0;
+				recv_params[i].resample_buffer_position = recv_params[i].resample_buffer_size;
+				recv_params[i].input_buffer_resample_position -= int2fix(recv_params[i].input_buffer_increment - recv_params[i].boundary_alignment);
 			}
-			input_buffer_resample_position += f4000_increment;
 		}
+
+		if(recv_params[i].resample_buffer_position++ == recv_params[i].resample_buffer_size) {
+			recv_params[i].resample_buffer_position = 0;
+			if (recv_params[i].start > 0) {
+				#ifdef DEBUG_THRESH
+					UDR0 =  analyze_output >> 8;
+				#endif
+				recv_params[i].output_char = recv_params[i].output_char << 1;
+				if(analyze_output > THRESH) {
+					recv_params[i].output_char |= 1;
+				}
+				recv_params[i].sin_acc = recv_params[i].cos_acc = 0;
+				memset(recv_params[i].resample_buffer_sin, 0, sizeof(int8_t) * recv_params[i].resample_buffer_size);
+				memset(recv_params[i].resample_buffer_cos, 0, sizeof(int8_t) * recv_params[i].resample_buffer_size);
+				recv_params[i].input_buffer_resample_position -= recv_params[i].boundary_alignment;
+				if(--(recv_params[i].start) == 0) {
+					#if !defined(DEBUG_DUMP) && !defined(DEBUG_THRESH) && !defined(DEBUG_RS_DUMP)
+						UDR0 = recv_params[i].output_char;
+					#endif
+					recv_params[i].prev_sin_acc = recv_params[i].prev_cos_acc = recv_params[i].last_derv_sin = recv_params[i].last_derv_cos = 0;
+				}
+			}
+		}
+		recv_params[i].input_buffer_resample_position += recv_params[i].input_buffer_increment;
 	}
 }
 
@@ -253,6 +282,25 @@ void init() {
 	#else
 		UBRR0 = 520;	// Set baud rate to 2400
 	#endif
+
+	memset(recv_params, 0, sizeof(struct recv_param_t) * 8);
+
+	recv_params[0].resample_buffer_sin = resample_buffer_sin_4000;
+	recv_params[0].resample_buffer_cos = resample_buffer_cos_4000;
+	recv_params[0].resample_buffer_size = 7;
+	recv_params[0].input_buffer_increment = int2fix(10);
+	recv_params[0].input_buffer_quarterphase = float2fix(2.5);
+	recv_params[0].boundary_alignment = int2fix(6);
+
+
+	recv_params[1].resample_buffer_sin = resample_buffer_sin_6000;
+	recv_params[1].resample_buffer_cos = resample_buffer_cos_6000;
+	recv_params[1].resample_buffer_size = 10;
+	recv_params[1].input_buffer_increment = float2fix(6.66666);
+	recv_params[1].input_buffer_quarterphase = float2fix(1.66666);
+	recv_params[1].boundary_alignment = float2fix(2.6666);
+
+
 
 	sei();
 	set_sleep_mode(SLEEP_MODE_IDLE);
