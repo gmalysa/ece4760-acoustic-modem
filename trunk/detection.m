@@ -6,7 +6,7 @@ figure(1);
 hold on;
 
 fs = 40000;
-f = 9000;
+f = 6000;
 buflen = ceil(64. / (fs/f));
 thresh = 2000;
 
@@ -18,18 +18,18 @@ thresh = 2000;
 % input(offset+64+64+64:offset+63+64+64+64) = data;
 
 try
-    serial = serial('COM5', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    serial = serial('COM6', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
 catch exception
     delete(serial);
     clear serial;
-    serial = serial('COM5', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    serial = serial('COM6', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
 end
 try
     fopen(serial);
 catch exception
     delete(serial);
     clear serial;
-    serial = serial('COM5', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    serial = serial('COM6', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
     fopen(serial);
 end
 fprintf(serial, 'f');
