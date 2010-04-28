@@ -6,10 +6,9 @@ figure(1);
 hold on;
 
 fs = 40000;
-f = 4000;
-buflen = 7;
+f = 9000;
+buflen = ceil(64. / (fs/f));
 thresh = 2000;
-derv_thresh = 6;
 
 % Sample input, with some amount of offset from the start of our buffer
 % data = hann(64)' .* 40 .*cos(2*pi*(f/fs)*[0:63]);
@@ -19,18 +18,18 @@ derv_thresh = 6;
 % input(offset+64+64+64:offset+63+64+64+64) = data;
 
 try
-    serial = serial('COM4', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    serial = serial('COM5', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
 catch exception
     delete(serial);
     clear serial;
-    serial = serial('COM4', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    serial = serial('COM5', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
 end
 try
     fopen(serial);
 catch exception
     delete(serial);
     clear serial;
-    serial = serial('COM4', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    serial = serial('COM5', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
     fopen(serial);
 end
 fprintf(serial, 'f');
@@ -133,8 +132,8 @@ while (k < length(input))
             rs = zeros(1, buflen);
             csum = 0;
             ssum = 0;
-            j = j - 6;
-            k = k - 6;
+            j = j - (step * buflen - 64);
+            k = k - (step * buflen - 64);
         end
         
         if (detected && start > 0)
