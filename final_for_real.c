@@ -30,7 +30,6 @@
 
 // Decoding defines
 #define IN_BUFFER_SIZE 64
-#define THRESH 4000
 
 // Send variables
 uint8_t output_sample_num = 0;
@@ -53,13 +52,11 @@ uint8_t freqCache[64];
 	volatile uint16_t offset_timer = 0;
 #endif
 
-const uint16_t f4000_increment = float2fix(10.);
-const uint16_t f4000_quarterphase = float2fix(2.5);
-
 // Receive variables
 #define NUM_FREQS 1
 #define RESAMPLE_BUFFER_MAX_SIZE 150
-float freqs[] = {9000., 6000.};
+float freqs[] = {6000., 6000.};
+int32_t thresholds[] = {4000, 4000};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -77,34 +74,14 @@ struct recv_param_t {
 	uint16_t boundary_alignment;
 	uint8_t start;
 	uint8_t output_char;
+	int32_t thresh;
 };
 int8_t resample_buffer_sin[RESAMPLE_BUFFER_MAX_SIZE];
 int8_t resample_buffer_cos[RESAMPLE_BUFFER_MAX_SIZE];
 uint8_t resample_buffer_next_free = 0;
 
-int8_t resample_buffer_sin_4000[7];
-int8_t resample_buffer_cos_4000[7];
-int8_t resample_buffer_sin_6000[10];
-int8_t resample_buffer_cos_6000[10];
-/*int8_t resample_buffer_sin_7000[12];
-int8_t resample_buffer_cos_7000[12];
-int8_t resample_buffer_sin_9000[15];
-int8_t resample_buffer_cos_9000[15];
-int8_t resample_buffer_sin_10000[16];
-int8_t resample_buffer_cos_10000[16];
-int8_t resample_buffer_sin_11000[18];
-int8_t resample_buffer_cos_11000[18];
-int8_t resample_buffer_sin_13000[21];
-int8_t resample_buffer_cos_13000[21];
-int8_t resample_buffer_sin_13000[24];
-int8_t resample_buffer_cos_13000[24];*/
 struct recv_param_t recv_params[NUM_FREQS];
 volatile int8_t input_buffer[IN_BUFFER_SIZE];
-//int8_t resample_buffer_sin[7] = {0,0,0,0,0,0,0};
-//int8_t resample_buffer_cos[7] = {0,0,0,0,0,0,0};
-//uint8_t resample_buffer_position = 0;
-//int16_t sin_acc = 0, cos_acc = 0, prev_sin_acc = 0, prev_cos_acc = 0, last_derv_sin = 0, last_derv_cos = 0;
-//uint16_t input_buffer_resample_position = 0;
 uint8_t input_buffer_pos = 0;
 volatile uint8_t public_input_buffer_position = 0;
 void init();
@@ -153,7 +130,6 @@ ISR(TIMER1_COMPA_vect) {
 }
 
 ISR(TIMER1_COMPB_vect, ISR_NAKED) {
-	//PORTD ^= (1 << PB2);
 	sei();
 	sleep_cpu();
 	reti();
@@ -162,7 +138,7 @@ ISR(TIMER1_COMPB_vect, ISR_NAKED) {
 int main() {
 	uint8_t i = 0;
 	init();
-	next_buffer = 3;
+	next_buffer = 1;
 	while(1) {
 		#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
 			if(offset_timer >= 700) {
@@ -217,7 +193,7 @@ void find_freq(struct recv_param_t* this_param) {
 			analyze_output = 0;
 		}	
 
-		if(analyze_output > THRESH && this_param->start == 0) {
+		if(analyze_output > this_param->thresh && this_param->start == 0) {
 			#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)	//maybe TODO: fix debug
 				if(offset_timer == 0) {
 					offset_timer = 1;
@@ -247,7 +223,7 @@ void find_freq(struct recv_param_t* this_param) {
 					UDR0 =  analyze_output >> 8;
 				#endif
 				this_param->output_char = this_param->output_char << 1;
-				if(analyze_output > THRESH) {
+				if(analyze_output > this_param->thresh) {
 					this_param->output_char |= 1;
 				}
 				this_param->sin_acc = this_param->cos_acc = 0;
@@ -304,6 +280,7 @@ void init() {
 		recv_params[i].resample_buffer_size = (uint8_t)ceil(64. / float_temp);
 		resample_buffer_next_free += recv_params[i].resample_buffer_size;
 		recv_params[i].boundary_alignment = float2fix((float_temp * recv_params[i].resample_buffer_size) - 64.);
+		recv_params[i].thresh = thresholds[i];
 	}
 
 	sei();
