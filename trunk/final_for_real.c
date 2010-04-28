@@ -58,6 +58,9 @@ const uint16_t f4000_increment = float2fix(10.);
 const uint16_t f4000_quarterphase = float2fix(2.5);
 
 // Receive variables
+#define NUM_FREQS 2
+#define RESAMPLE_BUFFER_MAX_SIZE 150
+float freqs[] = {4000., 6000.};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -76,6 +79,10 @@ struct recv_param_t {
 	uint8_t start;
 	uint8_t output_char;
 };
+int8_t resample_buffer_sin[RESAMPLE_BUFFER_MAX_SIZE];
+int8_t resample_buffer_cos[RESAMPLE_BUFFER_MAX_SIZE];
+uint8_t resample_buffer_next_free = 0;
+
 int8_t resample_buffer_sin_4000[7];
 int8_t resample_buffer_cos_4000[7];
 int8_t resample_buffer_sin_6000[10];
@@ -92,10 +99,10 @@ int8_t resample_buffer_sin_13000[21];
 int8_t resample_buffer_cos_13000[21];
 int8_t resample_buffer_sin_13000[24];
 int8_t resample_buffer_cos_13000[24];*/
-struct recv_param_t recv_params[2];
+struct recv_param_t recv_params[NUM_FREQS];
 volatile int8_t input_buffer[IN_BUFFER_SIZE];
-int8_t resample_buffer_sin[7] = {0,0,0,0,0,0,0};
-int8_t resample_buffer_cos[7] = {0,0,0,0,0,0,0};
+//int8_t resample_buffer_sin[7] = {0,0,0,0,0,0,0};
+//int8_t resample_buffer_cos[7] = {0,0,0,0,0,0,0};
 uint8_t resample_buffer_position = 0;
 int16_t sin_acc = 0, cos_acc = 0, prev_sin_acc = 0, prev_cos_acc = 0, last_derv_sin = 0, last_derv_cos = 0;
 uint16_t input_buffer_resample_position = 0;
@@ -176,7 +183,7 @@ int main() {
 			output_buffer_status[next_buffer] = START_BIT;	
 			//next_buffer = (next_buffer + 1) & 0x7;
 		}
-		for(i=0; i<2; ++i) {
+		for(i=0; i<NUM_FREQS; ++i) {
 			find_freq(i);
 		}
 	}
@@ -260,6 +267,8 @@ void find_freq(uint8_t i) {
 }
 
 void init() {
+	uint8_t i;
+	float float_temp;
 	DDRC = 0xff;
 	DDRD = _BV(PB7) | _BV(PB2) | _BV(PB1) | _BV(PB0);
 
@@ -283,9 +292,21 @@ void init() {
 		UBRR0 = 520;	// Set baud rate to 2400
 	#endif
 
-	memset(recv_params, 0, sizeof(struct recv_param_t) * 8);
+	memset(recv_params, 0, sizeof(struct recv_param_t) * NUM_FREQS);
+	memset(resample_buffer_sin, 0, sizeof(int8_t) * RESAMPLE_BUFFER_MAX_SIZE);
+	memset(resample_buffer_cos, 0, sizeof(int8_t) * RESAMPLE_BUFFER_MAX_SIZE);
+	for(i=0; i<NUM_FREQS; ++i) {
+		recv_params[i].resample_buffer_sin = resample_buffer_sin + resample_buffer_next_free;
+		recv_params[i].resample_buffer_cos = resample_buffer_cos + resample_buffer_next_free;
+		float_temp = 40000. / freqs[i];
+		recv_params[i].input_buffer_increment = float2fix(float_temp);
+		recv_params[i].input_buffer_quarterphase = float2fix(float_temp / 4.);
+		recv_params[i].resample_buffer_size = ceil(64. / float_temp);
+		resample_buffer_next_free += recv_params[i].resample_buffer_size;
+		recv_params[i].boundary_alignment = float2fix((float_temp * recv_params[i].resample_buffer_size) - 64.);
+	}
 
-	recv_params[0].resample_buffer_sin = resample_buffer_sin_4000;
+	/*recv_params[0].resample_buffer_sin = resample_buffer_sin_4000;
 	recv_params[0].resample_buffer_cos = resample_buffer_cos_4000;
 	recv_params[0].resample_buffer_size = 7;
 	recv_params[0].input_buffer_increment = int2fix(10);
@@ -298,7 +319,7 @@ void init() {
 	recv_params[1].resample_buffer_size = 10;
 	recv_params[1].input_buffer_increment = float2fix(6.66666);
 	recv_params[1].input_buffer_quarterphase = float2fix(1.66666);
-	recv_params[1].boundary_alignment = float2fix(2.6666);
+	recv_params[1].boundary_alignment = float2fix(2.6666);*/
 
 
 
