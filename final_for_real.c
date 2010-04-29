@@ -41,7 +41,7 @@ uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b0001000
 uint8_t freqCache[64];
 
 // Debug variables
-#define DEBUG_DUMP
+//#define DEBUG_DUMP
 //#define DEBUG_THRESH
 //#define DEBUG_RS_DUMP
 #if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
@@ -55,8 +55,8 @@ uint8_t freqCache[64];
 // Receive variables
 #define NUM_FREQS 1
 #define RESAMPLE_BUFFER_MAX_SIZE 150
-float freqs[] = {6000., 6000.};
-int32_t thresholds[] = {4000, 4000};
+float freqs[] = {4000., 6000.};
+int32_t thresholds[] = {2000, 4000};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -138,7 +138,7 @@ ISR(TIMER1_COMPB_vect, ISR_NAKED) {
 int main() {
 	uint8_t i = 0;
 	init();
-	next_buffer = 1;
+	next_buffer = 0;
 	while(1) {
 		#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
 			if(offset_timer >= 700) {
@@ -170,8 +170,8 @@ void find_freq(struct recv_param_t* this_param) {
 	int32_t analyze_output;
 	uint8_t x = fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_quarterphase);
 	
-	if((x <= public_input_buffer_position && public_input_buffer_position - x <= 30) ||
-	   (x > public_input_buffer_position && x - public_input_buffer_position > 30)) {
+	if((x <= public_input_buffer_position && public_input_buffer_position - x <= 20) ||
+	   (x > public_input_buffer_position && x - public_input_buffer_position > 20)) {
 		this_param->last_derv_sin = this_param->prev_sin_acc - this_param->sin_acc;
 		this_param->prev_sin_acc = this_param->sin_acc;
 		this_param->sin_acc -= this_param->resample_buffer_sin[this_param->resample_buffer_position];
@@ -186,7 +186,7 @@ void find_freq(struct recv_param_t* this_param) {
 		this_param->cos_acc += input_sample;
 		this_param->resample_buffer_cos[this_param->resample_buffer_position] = input_sample;
 
-		if(this_param->start == 0 || (this_param->start > 0 && this_param->resample_buffer_position == this_param->resample_buffer_size - 1)) {
+		if(this_param->start == 0 || (this_param->start > 0 && this_param->resample_buffer_position == (this_param->resample_buffer_size - 1))) {
 			analyze_output = (this_param->sin_acc * this_param->sin_acc) + (this_param->cos_acc * this_param->cos_acc);
 		}
 		else {
@@ -216,7 +216,7 @@ void find_freq(struct recv_param_t* this_param) {
 			}
 		}
 
-		if(this_param->resample_buffer_position++ >= this_param->resample_buffer_size - 1) {
+		if(this_param->resample_buffer_position++ >= (this_param->resample_buffer_size - 1)) {
 			this_param->resample_buffer_position = 0;
 			if (this_param->start > 0) {
 				#ifdef DEBUG_THRESH
@@ -268,6 +268,7 @@ void init() {
 		UBRR0 = 520;	// Set baud rate to 2400
 	#endif
 
+	memset(input_buffer, 0, sizeof(int8_t) * IN_BUFFER_SIZE);
 	memset(recv_params, 0, sizeof(struct recv_param_t) * NUM_FREQS);
 	memset(resample_buffer_sin, 0, sizeof(int8_t) * RESAMPLE_BUFFER_MAX_SIZE);
 	memset(resample_buffer_cos, 0, sizeof(int8_t) * RESAMPLE_BUFFER_MAX_SIZE);
@@ -282,6 +283,15 @@ void init() {
 		recv_params[i].boundary_alignment = float2fix((float_temp * recv_params[i].resample_buffer_size) - 64.);
 		recv_params[i].thresh = thresholds[i];
 	}
+	/*recv_params[0].resample_buffer_sin = resample_buffer_sin + resample_buffer_next_free;
+	recv_params[0].resample_buffer_cos = resample_buffer_cos + resample_buffer_next_free;
+	float_temp = 40000. / freqs[0];
+	recv_params[0].input_buffer_increment = float2fix(float_temp);
+	recv_params[0].input_buffer_quarterphase = float2fix(float_temp/4.);
+	recv_params[0].resample_buffer_size = (uint8_t)ceil(64. / float_temp);
+	resample_buffer_next_free += recv_params[0].resample_buffer_size;
+		recv_params[0].boundary_alignment = float2fix((float_temp * recv_params[0].resample_buffer_size) - 64.);
+		recv_params[0].thresh = thresholds[0];*/
 
 	sei();
 	set_sleep_mode(SLEEP_MODE_IDLE);
