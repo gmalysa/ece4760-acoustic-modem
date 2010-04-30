@@ -5,6 +5,9 @@ As things are completed, they will be listed here and categorized by week.
 == 4/29/10 - 5/5/10 ==
  * Hours and hours of debugging. Problems don't even make sense anymore; everything looks correct except for the behavior when it is not in debug mode.
  * Finished building second board, mounted speakers, can transmit from one unit to the other but the error rate is far too high.
+ * Found and fixed the error from above. Type conversion problem.
+ * TWO FREQUENCIES! Simultaneously transmit and receive on two frequencies with independent state machines, etc. Need to add more frequencies (should be easy after setting parameters).
+ * Also, implemented some channel equalization in the matlab script. Values chosen by experiment, but it helps deal with our filter not having a flat pass band.
 
 == 4/22/10 - 4/28/10 ==
  * Managed to get real data dumps off the AVR with some sketchy serial code.
