@@ -2,7 +2,11 @@
 
 As things are completed, they will be listed here and categorized by week.
 
-== 4/22/10 - 4/29/10 ==
+== 4/29/10 - 5/5/10 ==
+ * Hours and hours of debugging. Problems don't even make sense anymore; everything looks correct except for the behavior when it is not in debug mode.
+ * Finished building second board, mounted speakers, can transmit from one unit to the other but the error rate is far too high.
+
+== 4/22/10 - 4/28/10 ==
  * Managed to get real data dumps off the AVR with some sketchy serial code.
  * Revamped the matlab script to correctly trigger on aforementioned real data.
  * Successful transmission with a bit-error rate of less than 5%, up to 5 inches.
