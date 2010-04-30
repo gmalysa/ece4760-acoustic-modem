@@ -6,9 +6,10 @@ figure(1);
 hold on;
 
 fs = 40000;
-f = 4000;
+f = 6000;
 buflen = ceil(64. / (fs/f));
-thresh = 2000;
+thresh = 10000;
+dt = -1000;
 
 % Sample input, with some amount of offset from the start of our buffer
 % data = hann(64)' .* 40 .*cos(2*pi*(f/fs)*[0:63]);
@@ -52,7 +53,7 @@ end
 %     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
 %     fopen(rserial);
 % end
-fprintf(sserial, 'f');
+fprintf(sserial, 'fA');
 input = fread(sserial, 1023, 'int8');
 %fclose(rserial);
 %delete(rserial);
@@ -85,6 +86,8 @@ prev_csum = 0;
 prev_ssum = 0;
 prev_derv_csum = 0;
 prev_derv_ssum = 0;
+prev_mag = 0;
+mag = 0;
 while (k < length(input))
     % Find integer offsets
     cIndex = floor(j);
@@ -113,22 +116,30 @@ while (k < length(input))
     
     % Attempt detection
     trigger = 0;
-    if (csum^2 + ssum^2) > thresh
-        if abs(csum) > abs(ssum)
-            subplot(2, 1, 1);
-            plot(j, -140, 'bx');
-            if ((prev_csum - csum) >= 0 && prev_derv_csum < 0) || ((prev_csum - csum) < 0 && prev_derv_csum >= 0)
-                plot(j, -150, 'kx');
-                trigger = 1;
-            end
-        else
-            subplot(2, 1, 1);
-            plot(j, 120, 'rx');
-            if ((prev_ssum - ssum) >= 0 && prev_derv_ssum < 0) || ((prev_ssum - ssum) < 0 && prev_derv_ssum >= 0)
-                plot(j, 130, 'kx');
-                trigger = 1;
-            end
+    prev_mag = mag;
+    mag = csum^2 + ssum^2;
+    if mag > thresh
+%         if abs(csum) > abs(ssum)
+%             subplot(2, 1, 1);
+%             plot(j, -140, 'bx');
+%             %if ((prev_csum - csum) >= 0 && prev_derv_csum < 0) || ((prev_csum - csum) < 0 && prev_derv_csum >= 0)
+%             if (abs(abs(prev_csum - csum) - abs(prev_derv_csum)) < 10)
+%                 plot(j, -150, 'kx');
+%                 trigger = 1;
+%             end
+%         else
+%             subplot(2, 1, 1);
+%             plot(j, 120, 'rx');
+%             %if ((prev_ssum - ssum) >= 0 && prev_derv_ssum < 0) || ((prev_ssum - ssum) < 0 && prev_derv_ssum >= 0)
+%             if (abs(abs(prev_ssum - ssum) - abs(prev_derv_ssum)) < 10)
+%                 plot(j, 130, 'kx');
+%                 trigger = 1;
+%             end
+%         end
+        if ((mag - prev_mag) < dt)
+            trigger = 1;
         end
+        
         if (0 == start && trigger == 1)
 %             rc = zeros(1, buflen);
 %             rs = zeros(1, buflen);
@@ -146,7 +157,7 @@ while (k < length(input))
         line([cIndex cIndex], [-400 400]);
         samples = 0;
         if (start > 0)
-            if (csum^2 + ssum^2) > thresh
+            if mag > thresh
                 subplot(2, 1, 1);
                 line([sIndex sIndex], [-200 200]);
                 detected = 1;
