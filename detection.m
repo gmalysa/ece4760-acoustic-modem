@@ -6,7 +6,7 @@ figure(1);
 hold on;
 
 fs = 40000;
-f = 6000;
+f = 4000;
 buflen = ceil(64. / (fs/f));
 thresh = 2000;
 
@@ -17,26 +17,49 @@ thresh = 2000;
 % input(offset+64:offset+63+64) = data;
 % input(offset+64+64+64:offset+63+64+64+64) = data;
 
+COMs = 'COM2';
+COMr = 'COM3';
+bauds = 2400;
+baudr = 230400;
+
 try
-    serial = serial('COM6', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
 catch exception
-    delete(serial);
-    clear serial;
-    serial = serial('COM6', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
+    delete(sserial);
+    clear sserial;
+    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
 end
 try
     fopen(serial);
 catch exception
-    delete(serial);
+    delete(sserial);
     clear serial;
-    serial = serial('COM6', 'BaudRate', 230400, 'InputBufferSize', 1024, 'Terminator', '');
-    fopen(serial);
+    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
+    fopen(sserial);
 end
-fprintf(serial, 'f');
-input = fread(serial, 1023, 'int8');
-fclose(serial);
-delete(serial);
-clear serial;
+try
+    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+catch exception
+    delete(rserial);
+    clear rserial;
+    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+end
+try
+    fopen(rserial);
+catch exception
+    delete(rserial);
+    clear rserial;
+    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+    fopen(rserial);
+end
+fprintf(sserial, 'f');
+input = fread(rserial, 1023, 'int8');
+fclose(rserial);
+delete(rserial);
+fclose(sserial);
+delete(sserial);
+clear sserial;
+clear rserial;
 
 %input = x;
 
@@ -160,6 +183,7 @@ end
 %plot(ic, rc, 'g');
 subplot(2, 1, 1);
 plot(input, 'b');
+line([323, 323], [-600 600]);
 subplot(2, 1, 2);
 plot([1:length(input)], 0, 'k');
 %plot(is, rs, 'r');
