@@ -17,9 +17,9 @@ thresh = 2000;
 % input(offset+64:offset+63+64) = data;
 % input(offset+64+64+64:offset+63+64+64+64) = data;
 
-COMs = 'COM2';
-COMr = 'COM3';
-bauds = 2400;
+COMs = 'COM5';
+COMr = 'COM5';
+bauds = 230400;
 baudr = 230400;
 
 try
@@ -30,36 +30,36 @@ catch exception
     sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
 end
 try
-    fopen(serial);
+    fopen(sserial);
 catch exception
     delete(sserial);
-    clear serial;
+    clear sserial;
     sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
     fopen(sserial);
 end
-try
-    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
-catch exception
-    delete(rserial);
-    clear rserial;
-    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
-end
-try
-    fopen(rserial);
-catch exception
-    delete(rserial);
-    clear rserial;
-    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
-    fopen(rserial);
-end
+% try
+%     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+% catch exception
+%     delete(rserial);
+%     clear rserial;
+%     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+% end
+% try
+%     fopen(rserial);
+% catch exception
+%     delete(rserial);
+%     clear rserial;
+%     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+%     fopen(rserial);
+% end
 fprintf(sserial, 'f');
-input = fread(rserial, 1023, 'int8');
-fclose(rserial);
-delete(rserial);
+input = fread(sserial, 1023, 'int8');
+%fclose(rserial);
+%delete(rserial);
 fclose(sserial);
 delete(sserial);
 clear sserial;
-clear rserial;
+%clear rserial;
 
 %input = x;
 

@@ -43,7 +43,7 @@ uint8_t freqCache[64];
 // Debug variables
 //#define DEBUG_DUMP
 //#define DEBUG_THRESH
-#define DEBUG_RS_DUMP
+//#define DEBUG_RS_DUMP
 #if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
 	int8_t debugCache[1024];
 	volatile uint16_t debugCache_p = 0;
@@ -64,7 +64,7 @@ uint8_t freqCache[64];
 #define NUM_FREQS 1
 #define RESAMPLE_BUFFER_MAX_SIZE 150
 float freqs[] = {4000., 6000.};
-int32_t thresholds[] = {10000, 4000};
+int32_t thresholds[] = {4000, 4000};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -183,7 +183,7 @@ int main() {
 void find_freq(struct recv_param_t* this_param) {
 	int8_t input_sample = 0;
 	int8_t triggered = 0;
-	int32_t analyze_output = 0;
+	int32_t sin_squared=0, cos_squared=0, analyze_output = 0;
 	uint8_t x = fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_quarterphase);
 	
 	if((x <= public_input_buffer_position && public_input_buffer_position - x <= 20) ||
@@ -252,11 +252,14 @@ void find_freq(struct recv_param_t* this_param) {
 
 		// Thresholding if we're at the end of a time division or searching for a start bit
 		if(this_param->start == 0 || (this_param->resample_buffer_position >= (this_param->resample_buffer_size - 1))) {
-			analyze_output = ((int32_t)(this_param->sin_acc * this_param->sin_acc)) + ((int32_t)(this_param->cos_acc * this_param->cos_acc));
+			sin_squared = ((int32_t)this_param->sin_acc * (int32_t)this_param->sin_acc);
+			cos_squared = ((int32_t)this_param->cos_acc * (int32_t)this_param->cos_acc);
+			analyze_output = sin_squared + cos_squared;
+			//analyze_output = ((int32_t)(this_param->sin_acc * this_param->sin_acc)) + ((int32_t)(this_param->cos_acc * this_param->cos_acc));
 		}	
 
 		if(analyze_output > this_param->thresh && this_param->start == 0) {
-			if(abs(this_param->sin_acc) > abs(this_param->cos_acc)) {
+			if(sin_squared > cos_squared) {
 				if(((this_param->prev_sin_acc - this_param->sin_acc) ^ this_param->last_derv_sin) & 0x8000) {
 					triggered = 1;
 				}
@@ -346,7 +349,7 @@ void init() {
 		recv_params[i].input_buffer_quarterphase = float2fix(float_temp / 4.);
 		recv_params[i].resample_buffer_size = (uint8_t)ceil(64. / float_temp);
 		resample_buffer_next_free += recv_params[i].resample_buffer_size;
-		recv_params[i].boundary_alignment = float2fix((float_temp * recv_params[i].resample_buffer_size) - 64.);
+		recv_params[i].boundary_alignment = float2fix((float_temp * (float)(recv_params[i].resample_buffer_size)) - 64.);
 		recv_params[i].thresh = thresholds[i];
 		recv_params[i].last_pibp = 0;
 	}
