@@ -2,7 +2,7 @@
 t = [0:63];
 fs = 40000;
 f = [4000 6000 7000 9000 10000 11000 13000 15000];
-weights = [1 .3 .8 .8 .8 .9  1 1 ]';
+weights = [1 .3 .5 .8 .8 .9  1 1 ]';
 fn = f ./ fs;
 
 % Matrix of cosine arguments/values

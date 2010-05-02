@@ -8,7 +8,7 @@ hold on;
 fs = 40000;
 f = 6000;
 buflen = ceil(64. / (fs/f));
-thresh = 10000;
+thresh = 35000;
 dt = -1000;
 
 % Sample input, with some amount of offset from the start of our buffer
@@ -18,7 +18,7 @@ dt = -1000;
 % input(offset+64:offset+63+64) = data;
 % input(offset+64+64+64:offset+63+64+64+64) = data;
 
-COMs = 'COM5';
+COMs = 'COM2';
 COMr = 'COM5';
 bauds = 230400;
 baudr = 230400;
@@ -53,7 +53,7 @@ end
 %     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
 %     fopen(rserial);
 % end
-fprintf(sserial, 'fA');
+fprintf(sserial, 'a');
 input = fread(sserial, 1023, 'int8');
 %fclose(rserial);
 %delete(rserial);
@@ -68,17 +68,27 @@ clear sserial;
 %input = input + 4*randn(1, 1024);
 
 % Run input through resampler
-j = 1 + 8.*rand(1,1);
+j = 1;
 k = j + fs/(4*f);
+m = j + fs/(8*f);
+n = j + (fs*3)/(8*f);
 step = fs/f;
 i = 1;
 l = 1;
 rc = zeros(1, buflen);
 rs = zeros(1, buflen);
+rm = zeros(1, buflen);
+rn = zeros(1, buflen);
 ic = zeros(1, 1);
 is = zeros(1, 1);
+im = zeros(1, 1);
+in = zeros(1, 1);
+mcs = zeros(1, 1);
+mmn = zeros(1, 1);
 csum = 0;
 ssum = 0;
+msum = 0;
+nsum = 0;
 start = 0;
 samples = 0;
 detected = 0;
@@ -87,11 +97,14 @@ prev_ssum = 0;
 prev_derv_csum = 0;
 prev_derv_ssum = 0;
 prev_mag = 0;
+prev_shift_mag = 0;
 mag = 0;
-while (k < length(input))
+while (n < length(input))
     % Find integer offsets
     cIndex = floor(j);
     sIndex = floor(k);
+    mIndex = floor(m);
+    nIndex = floor(n);
     
     % Update running structures
     prev_derv_csum = prev_csum - csum;
@@ -104,20 +117,35 @@ while (k < length(input))
     ssum = ssum - rs(i);
     rs(i) = input(sIndex);
     ssum = ssum + rs(i);
+    msum = msum - rm(i);
+    rm(i) = input(mIndex);
+    msum = msum + rm(i);
+    nsum = nsum - rn(i);
+    rn(i) = input(nIndex);
+    nsum = nsum + rn(i);
+    
     subplot(2, 1, 1);
     hold on;
     plot(j, csum, 'bx');
     plot(k, ssum, 'rx');
+    plot(m, msum, 'gx');
+    plot(n, nsum, 'cx');
     subplot(2, 1, 2);
     hold on;
-    plot(j, csum^2 + ssum^2, 'kx');
+%    plot(j, csum^2 + ssum^2, 'kx');
+%    plot(m, msum^2 + nsum^2, 'rx');
     ic(l) = j;
     is(l) = k;
+    im(l) = m;
+    in(l) = n;
+    prev_mag = mcs(max(1,l-1));
+    prev_shift_mag = mmn(max(1,l-1));
+    mcs(l) = csum^2 + ssum^2;
+    mmn(l) = msum^2 + nsum^2;
     
     % Attempt detection
     trigger = 0;
-    prev_mag = mag;
-    mag = csum^2 + ssum^2;
+    mag = max(csum^2 + ssum^2, msum^2 + nsum^2);
     if mag > thresh
 %         if abs(csum) > abs(ssum)
 %             subplot(2, 1, 1);
@@ -136,8 +164,14 @@ while (k < length(input))
 %                 trigger = 1;
 %             end
 %         end
-        if ((mag - prev_mag) < dt)
-            trigger = 1;
+        if (mcs(l) > mmn(l))
+            if (mag - prev_mag) < dt 
+                trigger = 1;
+            end
+        else 
+            if (mag - prev_shift_mag) < dt
+                trigger = 1;
+            end
         end
         
         if (0 == start && trigger == 1)
@@ -164,10 +198,16 @@ while (k < length(input))
             end
             rc = zeros(1, buflen);
             rs = zeros(1, buflen);
+            rm = zeros(1, buflen);
+            rn = zeros(1, buflen);
             csum = 0;
             ssum = 0;
+            msum = 0;
+            nsum = 0;
             j = j - (step * buflen - 64);
             k = k - (step * buflen - 64);
+            m = m - (step * buflen - 64);
+            n = n - (step * buflen - 64);
         end
         
         if (detected && start > 0)
@@ -180,10 +220,13 @@ while (k < length(input))
     
     % Update sample count (redundant)
     samples = samples + 1;
+    %prev_mag = mag;
     
     % Update buffers/pointers/offsets
     j = j + step;
     k = k + step;
+    m = m + step;
+    n = n + step;
     i = i + 1;
     l = l + 1;
     if (i > buflen)
@@ -196,5 +239,8 @@ subplot(2, 1, 1);
 plot(input, 'b');
 line([323, 323], [-600 600]);
 subplot(2, 1, 2);
+hold on;
+plot(ic, mcs, 'k');
+plot(im, mmn, 'r');
 plot([1:length(input)], 0, 'k');
 %plot(is, rs, 'r');
