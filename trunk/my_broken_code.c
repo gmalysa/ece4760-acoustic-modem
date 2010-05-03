@@ -22,6 +22,7 @@
 #define fix2int(a) ((uint8_t)((a)>>10))
 #define float2fix(a) ((uint16_t)((a)*1024.0))
 #define fix2float(a) ((float)(a)/1024.0)
+
 #define int2lfix(a) (((uint16_t)(a))<<6)
 #define lfix2int(a) ((uint16_t)((a)>>6))
 #define fix2lfix(a) ((uint16_t)((a)>>4))
@@ -44,7 +45,7 @@ uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b0001000
 uint8_t freqCache[64];
 
 // Debug variables
-#define DEBUG_DUMP
+//#define DEBUG_DUMP
 //#define DEBUG_THRESH
 //#define DEBUG_RS_DUMP
 #if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
@@ -67,7 +68,7 @@ uint8_t freqCache[64];
 #define NUM_FREQS 2
 #define RESAMPLE_BUFFER_MAX_SIZE 1024
 float freqs[] = {8400., 6000., 8400.};
-int32_t thresholds[] = {5000, 5000, 35000};
+int32_t thresholds[] = {60000, 60000, 35000};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -80,10 +81,6 @@ struct recv_param_t {
 	int16_t cos_acc;
 	int16_t sin_shift_acc;
 	int16_t cos_shift_acc;
-//	int16_t prev_sin_acc;
-//	int16_t prev_cos_acc;
-//	int16_t last_derv_sin;
-//	int16_t last_derv_cos;
 	int32_t prev_mag;
 	uint16_t input_buffer_resample_position;
 	uint8_t resample_buffer_size;
@@ -111,7 +108,7 @@ void clear(struct recv_param_t*);
 ISR(TIMER1_COMPA_vect) {
 	uint8_t i;
 	PORTD &= ~_BV(PB7);
-	PORTC = freqCache[output_sample_num];
+	PORTC = pgm_read_byte(freqTable[output_bitpattern] + output_sample_num);
 	output_sample_num = (output_sample_num + 1) & 0x3f;
 	PORTD |= _BV(PB7);	
 	input_buffer[input_buffer_pos] = ADCH - 0x7E;
@@ -148,7 +145,7 @@ ISR(TIMER1_COMPA_vect) {
 			}
 			++output_buffer_status[i];
 		}
-		memcpy_P(freqCache, freqTable[output_bitpattern], sizeof(uint8_t) * 64);
+		//memcpy_P(freqCache, freqTable[output_bitpattern], sizeof(uint8_t) * 64);
 	}
 }
 
@@ -247,6 +244,10 @@ void find_freq(struct recv_param_t* this_param) {
 		this_param->cos_shift_acc += input_sample;
 		this_param->resample_buffer_cos_shift[this_param->resample_buffer_position] = input_sample;
 
+		if(this_param->resample_buffer_position++ >= (this_param->resample_buffer_size - 1)) {
+			this_param->resample_buffer_position = 0;
+		}
+
 		#if defined(DEBUG_RS_DUMP)
 			/*if(debug_enabled) {
 				debugCache[debugCache_p] = input_sample;
@@ -285,8 +286,8 @@ void find_freq(struct recv_param_t* this_param) {
 				#endif
 				this_param->start = 1;
 				this_param->output_char = 0;
-				//this_param->input_buffer_resample_position += (this_param->input_buffer_increment >> 1);
-				this_param->frame_position = 0 - fix2lfix(this_param->input_buffer_increment >> 1);
+				this_param->input_buffer_resample_position += this_param->input_buffer_increment;
+				this_param->frame_position = int2lfix(32);
 				this_param->prev_frame_position = 0;
 				clear(this_param);
 //				this_param->input_buffer_resample_position -= (this_param->input_buffer_increment - this_param->boundary_alignment);
@@ -305,15 +306,24 @@ void find_freq(struct recv_param_t* this_param) {
 			}
 			else {
 				if(analyze_output < this_param->thresh) { // We've crossed above the threshold previously and are now going down
-					if(this_param->frame_position - this_param->prev_frame_position < int2lfix(1)) { 	// False alarm
+					if(this_param->frame_position - this_param->prev_frame_position < int2lfix(5)) { 	// False alarm
 						this_param->prev_frame_position = 0;
 					}
 					else {	// We got a pulse
-						clear(this_param);
-						this_param->output_char |= bitmasks[7-lfix2int((this_param->prev_frame_position + ((this_param->frame_position - this_param->prev_frame_position)>>1)) >> 6)];
+						//clear(this_param);
+						this_param->output_char |= 0x80 >> (lfix2int((this_param->prev_frame_position + ((this_param->frame_position - this_param->prev_frame_position)>>1)) >> 6)-1);
 						this_param->prev_frame_position = 0;
 					}
 				}
+			}
+			this_param->frame_position += fix2lfix(this_param->input_buffer_increment);
+			if(this_param->frame_position >= int2lfix(608)) {
+				UDR0 = this_param->output_char;
+				PORTD |= _BV(PB3);
+				this_param->start = 0;
+				this_param->frame_position = 0;
+				this_param->prev_frame_position = 0;
+				clear(this_param);
 			}
 		}
 
@@ -347,23 +357,17 @@ void find_freq(struct recv_param_t* this_param) {
 		// }
 		
 		this_param->input_buffer_resample_position += this_param->input_buffer_increment;
-		this_param->frame_position += fix2lfix(this_param->input_buffer_increment);
-		if(this_param->start && lfix2int(this_param->frame_position) >= 512) {
-			UDR0 = this_param->output_char;
-			PORTD |= _BV(PB3);
-			this_param->start = 0;
-			clear(this_param);
-		}
 	}
 	
 }
 
 void clear(struct recv_param_t *this_param) {
 	this_param->sin_acc = this_param->cos_acc = this_param->sin_shift_acc = this_param->cos_shift_acc = 0;
-	memset(this_param->resample_buffer_sin, 0, this_param->resample_buffer_size);
-	memset(this_param->resample_buffer_cos, 0, this_param->resample_buffer_size);
-	memset(this_param->resample_buffer_sin_shift, 0, this_param->resample_buffer_size);
-	memset(this_param->resample_buffer_cos_shift, 0, this_param->resample_buffer_size);
+	this_param->resample_buffer_position = 0;
+	memset(this_param->resample_buffer_sin, 0, sizeof(int8_t) * this_param->resample_buffer_size);
+	memset(this_param->resample_buffer_cos, 0, sizeof(int8_t) * this_param->resample_buffer_size);
+	memset(this_param->resample_buffer_sin_shift, 0, sizeof(int8_t) * this_param->resample_buffer_size);
+	memset(this_param->resample_buffer_cos_shift, 0, sizeof(int8_t) * this_param->resample_buffer_size);
 }
 
 void init() {
