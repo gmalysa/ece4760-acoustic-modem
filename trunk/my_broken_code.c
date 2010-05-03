@@ -44,7 +44,7 @@ uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b0001000
 uint8_t freqCache[64];
 
 // Debug variables
-//#define DEBUG_DUMP
+#define DEBUG_DUMP
 //#define DEBUG_THRESH
 //#define DEBUG_RS_DUMP
 #if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
@@ -67,7 +67,7 @@ uint8_t freqCache[64];
 #define NUM_FREQS 2
 #define RESAMPLE_BUFFER_MAX_SIZE 1024
 float freqs[] = {8400., 6000., 8400.};
-int32_t thresholds[] = {1000, 1000, 35000};
+int32_t thresholds[] = {5000, 5000, 35000};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -285,8 +285,8 @@ void find_freq(struct recv_param_t* this_param) {
 				#endif
 				this_param->start = 1;
 				this_param->output_char = 0;
-				this_param->input_buffer_resample_position += (this_param->input_buffer_increment >> 1);
-				this_param->frame_position = 0;
+				//this_param->input_buffer_resample_position += (this_param->input_buffer_increment >> 1);
+				this_param->frame_position = 0 - fix2lfix(this_param->input_buffer_increment >> 1);
 				this_param->prev_frame_position = 0;
 				clear(this_param);
 //				this_param->input_buffer_resample_position -= (this_param->input_buffer_increment - this_param->boundary_alignment);
@@ -305,7 +305,7 @@ void find_freq(struct recv_param_t* this_param) {
 			}
 			else {
 				if(analyze_output < this_param->thresh) { // We've crossed above the threshold previously and are now going down
-					if(this_param->frame_position - this_param->prev_frame_position < int2lfix(3)) { 	// False alarm
+					if(this_param->frame_position - this_param->prev_frame_position < int2lfix(1)) { 	// False alarm
 						this_param->prev_frame_position = 0;
 					}
 					else {	// We got a pulse
@@ -347,8 +347,8 @@ void find_freq(struct recv_param_t* this_param) {
 		// }
 		
 		this_param->input_buffer_resample_position += this_param->input_buffer_increment;
-		this_param->frame_position += (this_param->input_buffer_increment >> 4);
-		if(this_param->start && this_param->frame_position >= 512) {
+		this_param->frame_position += fix2lfix(this_param->input_buffer_increment);
+		if(this_param->start && lfix2int(this_param->frame_position) >= 512) {
 			UDR0 = this_param->output_char;
 			PORTD |= _BV(PB3);
 			this_param->start = 0;
