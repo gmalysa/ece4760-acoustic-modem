@@ -37,7 +37,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 
 ## Objects that must be built in order to link
-OBJECTS = final_for_real.o sin_vals.o 
+OBJECTS = sin_vals.o my_broken_code.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -46,10 +46,10 @@ LINKONLYOBJECTS =
 all: $(TARGET) final.hex final.eep final.lss size
 
 ## Compile
-final_for_real.o: ../final_for_real.c
+sin_vals.o: ../sin_vals.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
-sin_vals.o: ../sin_vals.c
+my_broken_code.o: ../my_broken_code.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link
