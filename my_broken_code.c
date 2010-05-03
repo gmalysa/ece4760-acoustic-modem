@@ -88,10 +88,11 @@ struct recv_param_t {
 	uint16_t input_buffer_1_8phase;
 	uint16_t input_buffer_1_4phase;
 	uint16_t input_buffer_3_8phase;
-//	uint16_t boundary_alignment;
+	uint16_t boundary_alignment;
 	uint8_t start;
 	uint8_t output_char;
 	int32_t thresh;
+	uint8_t last_frame;
 //	uint8_t last_pibp;	//public_input_buffer_position
 };
 int8_t resample_buffer_pool[RESAMPLE_BUFFER_MAX_SIZE];
@@ -244,10 +245,6 @@ void find_freq(struct recv_param_t* this_param) {
 		this_param->cos_shift_acc += input_sample;
 		this_param->resample_buffer_cos_shift[this_param->resample_buffer_position] = input_sample;
 
-		if(this_param->resample_buffer_position++ >= (this_param->resample_buffer_size - 1)) {
-			this_param->resample_buffer_position = 0;
-		}
-
 		#if defined(DEBUG_RS_DUMP)
 			/*if(debug_enabled) {
 				debugCache[debugCache_p] = input_sample;
@@ -306,7 +303,7 @@ void find_freq(struct recv_param_t* this_param) {
 			}
 			else {
 				if(analyze_output < this_param->thresh) { // We've crossed above the threshold previously and are now going down
-					if(this_param->frame_position - this_param->prev_frame_position < int2lfix(5)) { 	// False alarm
+					if(this_param->frame_position - this_param->prev_frame_position <= fix2lfix(this_param->input_buffer_increment)) { 	// False alarm
 						this_param->prev_frame_position = 0;
 					}
 					else {	// We got a pulse
@@ -317,7 +314,7 @@ void find_freq(struct recv_param_t* this_param) {
 				}
 			}
 			this_param->frame_position += fix2lfix(this_param->input_buffer_increment);
-			if(this_param->frame_position >= int2lfix(608)) {
+			if(this_param->frame_position >= int2lfix(640)) {
 				UDR0 = this_param->output_char;
 				PORTD |= _BV(PB3);
 				this_param->start = 0;
@@ -355,6 +352,17 @@ void find_freq(struct recv_param_t* this_param) {
 				// }
 			// }
 		// }
+
+		if(this_param->resample_buffer_position++ >= (this_param->resample_buffer_size - 1)) {
+			this_param->resample_buffer_position = 0;
+			if(this_param->start) {
+				this_param->frame_position = this_param->frame_position - fix2lfix(this_param->boundary_alignment) + fix2lfix(this_param->input_buffer_increment >> 1);
+				if(this_param->prev_frame_position) {
+					this_param->prev_frame_position = this_param->prev_frame_position - fix2lfix(this_param->boundary_alignment) + fix2lfix(this_param->input_buffer_increment >> 1);	
+				}
+				this_param->input_buffer_resample_position = this_param->input_buffer_resample_position - this_param->boundary_alignment + (this_param->input_buffer_increment >> 1);
+			}
+		}
 		
 		this_param->input_buffer_resample_position += this_param->input_buffer_increment;
 	}
@@ -415,7 +423,7 @@ void init() {
 		resample_buffer_next_free += recv_params[i].resample_buffer_size;
 		recv_params[i].resample_buffer_cos_shift = resample_buffer_pool + resample_buffer_next_free;
 		resample_buffer_next_free += recv_params[i].resample_buffer_size;
-//		recv_params[i].boundary_alignment = float2fix((float_temp * (float)(recv_params[i].resample_buffer_size)) - 64.);
+		recv_params[i].boundary_alignment = float2fix((float_temp * (float)(recv_params[i].resample_buffer_size)) - 64.);
 		recv_params[i].thresh = thresholds[i];
 	}
 
