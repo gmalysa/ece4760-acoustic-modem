@@ -1,0 +1,610 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!--
+	This document provides the basis of a semantically structured web page 
+	authored in XHTML 1.0 Transitional using established Cornell University
+	naming conventions.
+-->
+
+<head>
+	<title>ECE 4760 Final Project: Acoustic Modem</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="Content-Language" content="en-us" />
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+	
+<!--
+	All layout and formatting should be controlled through Cascading Stylesheets (CSS).
+	The following link tag should appear in the head of every page in the website. see
+	styles/screen.css.
+-->
+
+	<link rel="stylesheet" type="text/css" media="screen" href="screen.css" />
+</head>
+
+<body class="onecolumn">
+
+<!--
+	The following link provides a way for people using text-based browsers and
+	screen readers to skip over repetitive navigation elements so that they can 
+	get directly to the content. It is hidden from general users through CSS.
+-->
+<div id="skipnav">
+	<a href="#content">Skip to main content</a>
+</div>
+
+<hr />
+
+<!-- The following div contains the Cornell University logo with unit signature -->
+<div id="cu-identity">
+
+	<div id="cu-logo">
+		<a id="insignia-link" href="http://www.cornell.edu/"><img src="images/unit_signature_unstyled.gif" alt="Cornell University" width="416" height="88" border="0" /></a>
+		<div id="unit-signature-links">
+			<a id="cornell-link" href="http://www.cornell.edu/">Cornell University</a>
+			<a id="unit-link1" href="http://www.ece.cornell.edu/">School of Electrical and Computer Engineering</a>
+			<a id="unit-link2" href="http://www.ece.cornell.edu/">School of Electrical and Computer Engineering</a>
+		</div>
+
+	</div>
+</div>
+
+<!-- The header div contains the main identity and main navigation for the site -->
+<div id="header">	
+	<!--
+		The navigation div contains the site's main navigation. These
+		links will be displayed in a horizontal, gray navigation bar 
+		under the unit signature banner.
+	-->	
+	<div id="navigation">
+		<ul>
+			<li><a href="#design">High Level Design</a></li>
+			<li><a href="#implementation">Implementation</a></li>
+			<li><a href="#results">Results</a></li>
+
+			<li><a href="#conclusion">Conclusion</a></li>
+			<li><a href="#appendix">Appendix</a></li>		
+			
+			<!-- More navigation as needed
+			<li><a href="#">Navigation 6</a></li>
+			-->
+						
+		</ul>
+	</div>
+	
+	<hr />
+	
+	<!-- 
+		The identity div contains the name of a main site section
+	-->
+	<div id="identity">
+<h1>Acoustic Data Modem</h1>
+<h4>Greg Malysa (gjm76) and Arseney Romanenko (asr96)</h4>
+	</div>
+</div>
+
+<hr />
+
+<div id="wrap">
+
+<!-- The content div contains the main content of the page -->
+<div id="content">
+	<div id="main">
+<center><div class="main-photo-large">
+	<img src="project_files/modem.jpg" width="510"/>
+	<p class="caption">Picture of Acoustic Modem</p>
+</div></center>
+<div class="bridge-section">
+<h2>Introduction</h2>
+<p>		
+For our final design project, we designed and built a prototype acoustic modem to serve as a physical transport layer for digital communications. 
+It converts between a digital communications scheme (RS-232) and an acoustically coupled communications scheme of our own design. Our project 
+consists of a pair of such modems to operate as transmit/receive pairs and supports duplex communications. Although our modem operates in air, 
+it is a proof-of-concept experiment in encoding, decoding, and data transmission techniques that will be used in the following years by the CUAUV 
+team to design a system capable of communicating over some distance underwater.
+</p>
+<h2 id="design">High Level Design</h2>
+<p><a href="#rationale">Rationale</a> | <a href="#math">Background Math</a> | <a href="#tradeoff">Design Tradeoffs</a> | <a href="#standards">Intellectual Property and Standards</a></p>
+<h3 id="rationale">Rationale</h3>
+<p>
+We chose this product because of its relevance to a student project team we were both members of, 
+CUAUV (Cornell University Autonomous Underwater Vehicle team). Usually, remote-controlled vehicles use 
+radio frequency (RF) wireless communications to transmit data between the device and its operator. 
+However, due to the nature of water, electromagnetic waves do not propagate well, with an effective 
+range of about a foot, depending on frequency. This makes them unsuitable for communicating with AUVs. 
+Acoustic data, however, can propagate very far underwater and acoustic underwater communications is 
+currently an important area of research at Woods Hole Oceanographic Institute (WHOI). Inspired by their 
+success and the existence of several commercial acoustic modems, our team has as a long term goal the 
+creation of an acoustic modem that can be used to communicate with the vehicle while it is in the water 
+without a tether. Our project serves as a prototype to help us develop our own algorithms and techniques 
+for encoding and processing data acoustically.
+</p>
+
+<h3 id="math">Background Math</h3>
+<p>
+Because we used cheap audio-range speakers and microphones, our project was limiting to transmitting within 
+the range of human hearing, ~20 Hz - 20 kHz. Therefore, we selected an encoding scheme that minimized per-byte 
+bandwidth utilization while retaining simplicity, so that it was possible to implement decoding. The two most 
+intuitive and basic digital encoding schemes are frequency-shift keying, where data is transmitted on a pair of 
+frequencies, each representing a distinct digital value, and on-off keying, where the presence or absence of a 
+single frequency is used to encode a digital value. We chose the second (OOK) because it requires half the acoustic 
+bandwidth (uses only one frequency per channel, rather than two) to transmit a particular amount of data. We 
+also chose to use an asynchronous design in order to avoid paying for the overhead of having an additional 
+clock frequency, instead breaking the transmissions into a series of known-width pulses. Transmitted data is 
+broken into chunks of 64 samples so as to conveniently fit into a power of two size buffer so that it can efficiently 
+be implemented as a circular buffer. Each physical frame consists of a start bit (S1, a one bit), eight data bits, 
+most-significant-bit first, and a stop bit (S2, a zero bit). At a sampling rate of 40 kHz (chosen to avoid aliasing 
+across the entire 20 Hz-20 kHz range), 64 samples corresponds to a pulse width of 1.6 ms, which limits each frequency 
+channel to transmitting 62.5 complete frames per second as a theoretical max.
+<center><div class="main-photo-large">
+	<img src="frame.png" alt="" width="510"/>
+	<p class="caption">Sample Transmission Frame</p>
+</div></center>
+</p><p>
+Next, as we are limited by the computational power of our Atemga644 microcontroller, and we would ideally transmit and 
+receive from a single microcontroller, we designed a hybrid algorithm for detecting transmitted data using FIR filters 
+to estimate the magnitude of specific frequency components over time. For each frequency of interest (which will be 
+derived afterwards), we resample at that frequency, exploiting aliasing to obtain a DC component corresponding to the 
+amplitude of the frequency. Because the cosine of zero is one, the magnitude of the DC component can be estimated with 
+a simple sum of those samples. However, because the real frequency component may have a non-zero phase shift associated 
+with it, at DC it will have an analogous "phase shift" which requires that a second resampler to be used with a 90-degree 
+phase delay-this pair together can estimate the Fourier Transform evaluated at DC for phase and magnitude information.
+<center><div class="main-photo-large">
+	<img src="flowchart.png" alt="" width="510"/>
+	<p class="caption">Magnitude Estimation Process Flowchart</p>
+</div></center>
+</p><p>
+However, it is important to consider the effects of aliasing on frequencies OTHER than the frequency of interest. Usually, 
+aliasing is a bad property to have in a digital system, as it can cause other frequencies to appear as the target frequency. 
+For instance, when sampling at 6 kHz, the possible aliases that are within our analog pass-band and appear as a DC signal are 
+true DC, 6 kHz, 12 kHz, and 18 kHz. Therefore, in selecting the frequencies for our transmission channels, if we choose 6 
+kHz as a transmit frequency, we cannot also use 12 or 18 kHz. Because the Fourier Transform estimator is implemented as a 
+moving average, it can also be interpreted as an FIR filter, which has a known frequency response. An N-term moving average 
+filter has a frequency response characterized by a maximum at DC and ?N/2? zeros evenly spaced around the unit circle. The 
+number of terms in the moving average filter for each frequency is chosen by having the length of the filter match the length 
+of each burst in time (1.6 ms). Because it is unlikely for these to match precisely, the filters are usually defined to extend 
+one sample longer than the burst. In general, therefore, with sampling frequency fs and target frequency f, the length of the 
+appropriate averaging filter is <img src="" alt="N=|64/(fs/f)|" />. For example, for 6 kHz, N is 10. Because the window is so short, it is important 
+to minimize the interference between frequency channels, which is most easily done by having each channel fall match with a zero 
+in the moving average for all of the other channels. Due to aliasing between the channels, a particular channel frequency may also 
+fall on the alias of a zero rather than the normal interpretation of the zero.
+</p>
+<h3 id="tradeoff">Design Tradeoffs</h3>
+<p>
+</p>
+<h3 id="standards">Intellectual Property and Standards</h3>
+<p>
+</p>
+
+<div class="bridge-section">
+<h2 id="implementation">Implementation</h2>
+<p><a href="#hardware">Hardware</a> | <a href="#software">Software</a> | <a href="#trial">Trial And Error</a></p>
+<h3 id="hardware">Hardware</h3>
+<p>
+</p>
+<h3 id="software">Software</h3>
+<p>
+</p>
+<h3 id="trial">Trial And Error</h3>
+<p>
+</p>
+	<div class="bridge-section">
+	<h2 id="results">Results</h2>
+
+	<p><a href="#soft_ex">Software Execution</a> | <a href="#accuracy">Accuracy</a> | <a href="#safety">Safety Enforcement</a> | <a href="#interference">Interference and Accessibility</a></p>
+	<h3 id="soft_ex">Software Execution</h3>
+		<p>Due
+to careful consideration and planning of the non-blocking functions in our
+software, the user interactions with the Electric Etch performed over a serial
+terminal on a PC were all very concurrent and lag-free. Save for the response
+to the ‘help’ command, which transmitted a large chunk of text over serial, the
+microcontroller’s software operated without any hiccups or latency. Commands
+were still interpreted and acted upon, even while the stepper motors were in
+full motion. Longer software testing would have surely revealed bugs, but the
+basic functionality we aimed for worked consistently.
+		</p>
+
+		<h3 id="accuracy">Accuracy</h3>
+		<p>The
+biggest accuracy compromises came from the mechanical Etch-a-Sketch device
+itself. Over time, its backlash characteristics wandered, its knobs would
+randomly stiffen up, and some points on the screen would exhibit very
+inconsistent mechanical characteristics. For these reasons, the accuracy of
+drawing precise characters on the screen was a hit-and-miss affair. Backlash is
+common to many mechanical devices, but in the case of the Etch-a-Sketch, where
+no form of feedback was implemented, it proved to be quite a frustration.
+Otherwise, software kept an accurate time base and the circuitry also proved
+very reliable.
+		</p>
+		<h3 id="safety">Safety Enforcement</h3>
+		<p>
+		Since the device is highly mechanical as well as electrical, safety of both aspectes should be ensured. In order to enforce the mechanical safety, all the parts were carefully machined to be bolted together rather than tying or taping them. Also, since the motors require heavy duty powering, electronic chips as well as the motors tend to get rather hot. In order to avoid possible overheating of the components, all the chips were operated below their threshold and a heat sink was implemented to  H-bridge of the bipolar tilt motor.
+		</p>
+		<h3 id="interference">Interference and Accessibility</h3>
+
+		<p>
+		Most
+of the work on this project was performed outside of the ECE 476 lab in the
+labs of our respective project teams, where we had access to better equipment
+and more space. We therefore did not notice any interference with other
+people's designs, and since we didn't use any RF circuitry, no interference was
+expected. In terms of accessibility, our design requires users to be able to
+use some method of computer text entry, like a keyboard or voice recognition,
+to communicate to the device through a serial port terminal program running on
+a PC. Also, as this is a visual device, it is not at all useful for the
+visually-impaired. These are the only accessibility limitations which we
+thought of. When designing the terminal interface, we took care to give
+user-friendly textual descriptions of the functions, and look for and give
+feedback about input errors without using cryptic codes. For instance, instead
+of replying "RX Buffer Overflow" when a user types in too long of a command,
+the software actually says, "Sorry, your command was too long. Try again!" and
+suggests a comprehensive commands list for other problems. After all, we did
+design this project for the kids inside all of us!
+		</p>
+		
+		<div class="bridge-section">
+		<h2 id="conclusion">Conclusion</h2>
+		<p><a href="#analysis">Analysis of Results</a> | <a href="#st_conformity">Standards Conformity</a> | <a href="#IP">IP Considerations</a> | <a href="#ethical">Ethical Considerations</a> | <a href="#legal">Legal Considerations</a></p>
+
+		<h3 id="analysis">Analysis of Results</h3>
+		<p>On
+the whole, we were able to successfully achieve the functions we set out to
+implement by motorizing the classic Etch-a-Sketch toy. We implemented a working
+erasing mechanism, and had an imperfect but satisfactory character set which we
+could draw on the screen. Like we intended, we were able to draw static
+messages and display minute time on the Electric Etch. In hindsight, we agree
+that we should have spent more time on the software with clear, well-rested
+minds. The lack of sleep amplified our frustrations with the Etch-a-Sketch’s mechanical
+problems, and slowed down the debugging process. In the end, we fear that we
+might have had some yet-to-be-discovered software bugs that would have reared
+their heads if we had more time to test.</p>
+<p>But,
+setting time management issues aside, if we were to repeat the ECE 4760 experience
+with a similar project, we would have certainly implemented some kind of
+feedback mechanism that would help us better compensate for the Etch-a-Sketch’s
+mechanical shortcomings. This could be done by using servomotors instead of
+stepper motors. We were, however, very proud of our stand and assembly, which
+was fashioned completely out of scrap parts and yet looked very polished
+&#8211; even matching the Etch-a-Sketch’s color scheme!</p>
+		<h3 id="st_conformity">Standards Conformity</h3>
+		<p>
+		As
+stated before, the only notable standard involved in our design was the RS-232
+serial protocol used by the microcontroller to communicate with the PC. This common
+standard was implemented in the hardware of the MEGA644 microcontroller and in
+the MAX233 level transceiver, removing any efforts to conform to it from us,
+the designers.
+		</p>
+
+		<h3 id="IP">IP Considerations</h3>
+		<p>
+		Our
+software borrowed the line-drawing code from the <a
+href="http://instruct1.cit.cornell.edu/courses/ee476/labs/s2009/lab4code/video_codeGCC644.c">sample
+code</a> provided by Bruce Land for <a
+href="http://instruct1.cit.cornell.edu/courses/ee476/labs/s2009/lab4.html">Lab
+4</a> of this class, which he credits to David Rodgers, the author of &quot;Procedural
+Elements of Computer Graphics&quot;.  While we did not get a hold of this book
+for verification, we referred to the University of North Carolina's <a
+href="http://www.cs.unc.edu/~mcmillan/comp136/Lecture6/Lines.html">web page</a>
+
+on line-drawing algorithms to understand how this particular implementation
+worked.
+		</p><p>
+		We
+also acknowledge <a href="http://angelayuan.com/projects.html">Angela Yuan's
+Etch-a-Sketch clock project</a> as the source of our inspiration, and the trail
+of Etch-a-Sketch projects which she references in her documentation.
+Fortunately, none of these projects had accurate, in-depth information of how
+they were implemented &#8211; not even so much as the chips used for the
+projects. This left much of the implementation for us to build up from scratch,
+and so we feel we have not compromised the integrity of our work. Our work,
+presented on this website, is in the public domain and is in no way proprietary
+information &#8211; that is to say, it is for academic purposes only and is not
+intended by us, the designers, for anything outside the purposes of this class,
+including, but not limited to, personal profit, ending world hunger, or
+weaponry. We feel that we fully align with Cornell's <a
+href="http://www.cuinfo.cornell.edu/Academic/AIC.html">Code of Academic
+Integrity</a>.
+		</p><p>
+		Furthermore,
+we did not attempt to reverse-engineer any pre-existing designs, and we neither
+claim invention nor exclusive rights to any of our work. We are not advertising
+this project for monetary gain. We feel that by acknowledging this, we are
+avoiding any patent and trademark issues. As this is not necessarily a novel
+idea in the sense that it has not been done before, it does not readily present
+itself as a patent opportunity, and we do not aim to pursue any patents.
+		</p><p>
+
+		We
+are open to publishing opportunities should interested parties make themselves
+known.
+		</p>
+		<h3 id="ethical">Ethical Considerations</h3>
+		<p>
+		Our device operates in a small
+confined region without any wide range of motion, projectiles, or signal
+transmission. As long as the user makes sure to follow the electrical voltage
+and current requirements and to keep a safe distance from the gear set, our
+device would not impose any physical or environmental threat to its users and
+surroundings. As an advanced version of a classic toy, our device would not
+cause conflicts of interest of any form. Based on our results, we do not claim
+to have the perfect motorized control of Etch-a-Sketch. There are some less
+obvious mechanical complications are involved, and we recognize that our design
+has limitations to address the complications. Because our design does not provide
+any advantage to any group of people or individuals over others, there is no
+bribery involved with out project. Since our project was to design an advanced
+toy, it does not have great effect on the contemporary cutting-edge technology.
+What is moderately pertinent to our project may be any device that requires the
+precise motor position control, such as plotter, machining equipments, or
+printing equipments. We were exercising our technical skills such as soldering
+and machining only if we were allowed, when we were allowed, and where we were
+allowed. We acknowledge our mechanical engineer classmates who have given very
+useful advices for the structure of our device and appreciate their helpful
+input to our design. Also, we acknowledge our respective labs where we had a
+great advantage of using the facilities as well as mechanical and electrical
+components. Our device does not have any limitation for any group of people or
+individuals except possibly for visually challenged individuals since it is a
+displaying device. Our device is a passive device, which does not contain or
+transmit any personal data or impose threat to anyone's property of reputation.
+While we were designing our device, we were cooperative with our classmates,
+especially the ones who were also using stepper motors, in order to share
+information and encourage each others design projects.
+		</p>
+		<h3 id="legal">Legal Considerations</h3>
+		<p>
+		As mentioned above in ethical
+considerations section, our device is a passive, confined, and safe device
+which does not transmit any signal. Therefore, there are no crucial legal
+considerations involved in our project.
+		</p>
+
+		
+		<div class="bridge-section">
+		<h2 id="appendix">Appendix</h2> 
+		<p><a href="#code">Source Code</a> | <a href="#schematics">Schematics</a> | <a href="#parts">Parts List</a> | <a href="#task">Task Division</a> | <a href="#reference">References</a></p>
+
+		
+		<h3 id="code">Source Code</h3>
+		<p><a href="project_files/source_code.zip">Download Source Code</a></p>
+		
+		<h3 id="schematics">Schematics</h3>
+		<p><a href="project_files/Electric_Etch_Schematic.pdf">Download Electric Etch Schematics</a></p>
+		<p><a href="http://www.nbb.cornell.edu/neurobio/land/PROJECTS/Protoboard476/index.html">Protoboard Schematics</a></p>
+		
+		<h3 id="parts">Parts List</h3>
+
+		<table cellspacing="0" cellpadding="0" border="1">
+			<thead>
+				<tr>
+					<th>Item</th>
+					<th>Part Number</th>
+					<th>Vendor</th>
+					<th>Unit Price</th>
+
+					<th>Quantity</th>
+					<th>Cost</th>
+				</tr>
+			</thead>
+			<tfoot>
+				<tr class="row1">
+					<td></td>
+					<td></td>
+
+					<td></td>
+					<td></td>
+					<td>Total Cost</td>
+					<td>$51</td>
+				</tr>			
+			</tfoot>
+			<tbody>
+				<tr class="row1">
+
+					<td>Microcontroller</td>
+					<td>ATmega644</td>
+					<td>ATMEL</td>
+					<td>$8</td>
+					<td>1</td>
+					<td>$8</td>
+
+				</tr><tr class="row2">
+					<td>Etch-a-Sketch</td>
+					<td>N/A</td>
+					<td>Ohio Art Company</td>
+					<td>$11</td>
+					<td>1</td>
+
+					<td>$11</td>
+				</tr><tr class="row1">
+					<td>Unipolar stepper motor</td>
+					<td>Vexta PX243M-01AA</td>
+					<td>Jameco</td>
+					<td>$10</td>
+
+					<td>2</td>
+					<td>$20</td>
+				</tr><tr class="row2">
+					<td>Bipolar stepper motor</td>
+					<td>Airpax LB82773-M1</td>
+					<td>Scrap(476 lab)</td>
+
+					<td>Borrowed</td>
+					<td>1</td>
+					<td>0</td>
+				</tr><tr class="row1">
+					<td>Darlington arrays</td>
+					<td>ULN2003A</td>
+
+					<td>STMicroelectronics</td>
+					<td>Sampled</td>
+					<td>6</td>
+					<td>0</td>
+				</tr><tr class="row2">
+					<td>Stepper motor controller</td>
+
+					<td>L297</td>
+					<td>STMicroelectronics</td>
+					<td>Sampled</td>
+					<td>3</td>
+					<td>0</td>
+				</tr><tr class="row1">
+
+					<td>H-bridge</td>
+					<td>L298</td>
+					<td>STMicroelectronics</td>
+					<td>Sampled</td>
+					<td>1</td>
+					<td>0</td>
+
+				</tr><tr class="row2">
+					<td>RS232 level shifter</td>
+					<td>MAX233CPP</td>
+					<td>Maxim</td>
+					<td>Sampled</td>
+					<td>1</td>
+
+					<td>0</td>
+				</tr><tr class="row1">
+					<td>White board</td>
+					<td>N/A</td>
+					<td>N/A</td>
+					<td>$6</td>
+
+					<td>2</td>
+					<td>$12</td>
+				</tr><tr class="row2">
+					<td>Custom PC board</td>
+					<td>N/A</td>
+					<td>N/A</td>
+
+					<td>Owned</td>
+					<td>1</td>
+					<td>0</td>
+				</tr><tr class="row1">
+					<td>Gear set</td>
+					<td>N/A</td>
+
+					<td>Scrap(TAM lab)</td>
+					<td>Borrowed</td>
+					<td>1</td>
+					<td>0</td>
+				</tr><tr class="row2">
+					<td>Bushings</td>
+
+					<td>N/A</td>
+					<td>Scrap(TAM lab)</td>
+					<td>Borrowed</td>
+					<td>3</td>
+					<td>0</td>
+				</tr><tr class="row1">
+
+					<td>Diode</td>
+					<td>1N5350B</td>
+					<td>Scrap(CUAUV lab)</td>
+					<td>Borrowed</td>
+					<td>8</td>
+					<td>0</td>
+
+				</tr><tr class="row2">
+					<td>SOIC carrier</td>
+					<td>N/A</td>
+					<td>Scrap(CUAUV lab)</td>
+					<td>Borrowed</td>
+					<td>3</td>
+
+					<td>0</td>
+				</tr><tr class="row1">
+					<td>Heat sink</td>
+					<td>N/A</td>
+					<td>Scrap(CUAUV lab)</td>
+					<td>Borrowed</td>
+
+					<td>1</td>
+					<td>0</td>
+				</tr><tr class="row2">
+					<td>Acrylic and plastic</td>
+					<td>N/A</td>
+					<td>Scrap(CUAUV lab)</td>
+
+					<td>Borrowed</td>
+					<td>N/A</td>
+					<td>0</td>
+				</tr><tr class="row1">
+					<td>Screws</td>
+					<td>N/A</td>
+
+					<td>Scrap(CUAUV lab)</td>
+					<td>Borrowed</td>
+					<td>30</td>
+					<td>0</td>
+				</tr><tr class="row2">
+					<td>Power supply</td>
+
+					<td>ATX power supply</td>
+					<td>Scrap(CUAUV lab)</td>
+					<td>Borrowed</td>
+					<td>1</td>
+					<td>0</td>
+				</tr>
+
+			</tbody>
+		</table>
+		
+		<h3 id="task">Task Division</h3>
+		<h4> Kirill </h4>
+		<ul>
+		<li> Initial software planning </li>
+
+		<li> Software implementation </li>
+		<li> Mechanical drafting </li>
+		<li> Software debugging </li>
+		<li> Report </li>
+		</ul> 
+		<h4> Emily </h4>
+
+		<ul>
+		<li> Initial software planning </li>
+		<li> Mechanical drafting and Machining</li>
+		<li> Matlab character developing</li>
+		<li> Report </li>
+
+		<li> Website </li>
+		</ul>
+		
+		<h3 id="reference">References</h3>
+		<h4> Datasheets </h4>
+		<ul>
+		<li><a href="http://instruct1.cit.cornell.edu/courses/ee476/AtmelStuff/mega644full.pdf">Atmel Atmega64</a></li><li>
+
+		<a href="datasheets/l297.pdf">Stepper Motor Controller</a></li><li>
+		<a href="datasheets/l298.pdf">H-Bridge</a></li><li>
+		<a href="datasheets/ULN2003A.pdf">Darlington Arrays</a></li><li>
+		<a href="datasheets/PX243M-01AA.pdf">Unipolar Stepper Motor</a></li>
+		</ul>
+		
+		<h4> Vendor Sites </h4>
+
+		<ul>
+		<li><a href="http://www.atmel.com/">Atmel</a></li><li>
+		<a href="http://www.jameco.com/webapp/wcs/stores/servlet/StoreCatalogDisplay?storeId=10001&catalogId=10001&langId=-1">Jameco</a></li><li>
+		<a href="http://www.st.com/stonline/">STMicroelectronics</a></li><li>
+		<a href="http://www.maxim-ic.com/">Maxim</a></li>
+		</ul>
+		
+		<h4> Other Online Resources </h4>
+
+		<ul>
+		<li><a
+href="http://instruct1.cit.cornell.edu/courses/ee476/labs/s2009/lab4code/video_codeGCC644.c"> 
+ECE476 lab 4 sample code</a></li><li>
+<a
+href="http://www.cs.unc.edu/~mcmillan/comp136/Lecture6/Lines.html">Line Drawing Algorithm from University of North Carolina</a></li><li>
+<a href="http://angelayuan.com/projects.html">Angela Yuan's
+Etch-a-Sketch clock project</a></li>
+		</ul>
+
+<hr />
+
+</body>
+</html>
