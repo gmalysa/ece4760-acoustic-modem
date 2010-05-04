@@ -46,7 +46,7 @@ uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b0001000
 uint8_t freqCache[64];
 
 // Debug variables
-#define DEBUG_DUMP
+//#define DEBUG_DUMP
 //#define DEBUG_THRESH
 //#define DEBUG_RS_DUMP
 #if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
@@ -72,26 +72,32 @@ uint8_t freqCache[64];
 #define FALLING_EDGE 4
 #define NUM_FREQS 2
 #define RESAMPLE_BUFFER_MAX_SIZE 1024
-#define DT 50
+#define DT 100
 float freqs[] = {8400., 6000., 8400.};
-int32_t thresholds[] = {180, 200, 120};
+int16_t thresholds[] = {600, 750, 120};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
+	int8_t *resample_buffer_fsin;
+	int8_t *resample_buffer_fcos;
 	uint8_t resample_buffer_position;
 	uint8_t samples;
 	int16_t sin_acc;
 	int16_t cos_acc;
-	int32_t prev_mag;
+	int16_t fsin_acc;
+	int16_t fcos_acc;
+	int16_t prev_mag;
 	uint16_t input_buffer_resample_position;
 	uint8_t resample_buffer_size;
 	uint16_t input_buffer_increment;
+	uint16_t input_buffer_1_8phase;
 	uint16_t input_buffer_1_4phase;
+	uint16_t input_buffer_3_8phase;
 	uint16_t boundary_alignment;
 	uint8_t start;
 	uint8_t trigger;
 	uint8_t output_char;
-	int32_t thresh;
+	int16_t thresh;
 	uint8_t detected;
 };
 int8_t resample_buffer_pool[RESAMPLE_BUFFER_MAX_SIZE];
@@ -196,8 +202,8 @@ int main() {
 
 void find_freq(struct recv_param_t* this_param) {
 	int8_t input_sample = 0;
-	int32_t analyze_output = 0;
-	uint8_t x = fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_1_4phase);
+	int16_t analyze_output = 0;
+	uint8_t x = fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_3_8phase);
 	
 	if((x <= public_input_buffer_position && public_input_buffer_position - x <= 20) ||
 	   (x > public_input_buffer_position && x - public_input_buffer_position > 20)) {
@@ -229,7 +235,7 @@ void find_freq(struct recv_param_t* this_param) {
 
 		// Cosine component calculations
 		this_param->cos_acc -= this_param->resample_buffer_cos[this_param->resample_buffer_position];
-		input_sample = input_buffer[x];
+		input_sample = input_buffer[fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_1_4phase)];
 		this_param->cos_acc += input_sample;
 		this_param->resample_buffer_cos[this_param->resample_buffer_position] = input_sample;
 
@@ -253,7 +259,18 @@ void find_freq(struct recv_param_t* this_param) {
 			}*/
 		#endif
 
-		analyze_output = max(abs(this_param->sin_acc), abs(this_param->cos_acc));
+		// 45-degree shifted sine
+		this_param->fsin_acc -= this_param->resample_buffer_fsin[this_param->resample_buffer_position];
+		input_sample = input_buffer[fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_1_8phase)];
+		this_param->fsin_acc += input_sample;
+		this_param->resample_buffer_fsin[this_param->resample_buffer_position] = input_sample;
+		
+		this_param->fcos_acc -= this_param->resample_buffer_fcos[this_param->resample_buffer_position];
+		input_sample = input_buffer[x];
+		this_param->fcos_acc += input_sample;
+		this_param->resample_buffer_fcos[this_param->resample_buffer_position] = input_sample;
+
+		analyze_output = abs(this_param->sin_acc) + abs(this_param->cos_acc) + abs(this_param->fsin_acc) + abs(this_param->fcos_acc);
 
 		if (this_param->start == 0) {
 			switch(this_param->trigger) {
@@ -268,7 +285,7 @@ void find_freq(struct recv_param_t* this_param) {
 						this_param->trigger = NO_EDGE;
 					break;
 				case PEAK:
-					if ((this_param->prev_mag - analyze_output) > -DT) {
+					if ((this_param->prev_mag - analyze_output) > -20) {
 						if (this_param->start == 0) {
 							#ifdef DEBUG_DUMP
 								if (offset_timer == 0) {
@@ -276,7 +293,7 @@ void find_freq(struct recv_param_t* this_param) {
 								}
 							#endif
 							this_param->start = 9;
-							this_param->samples = this_param->resample_buffer_size - 1;
+							this_param->samples = this_param->resample_buffer_size;
 							PORTD &= ~_BV(PB3);
 						}
 						this_param->trigger = NO_EDGE;
@@ -297,24 +314,27 @@ void find_freq(struct recv_param_t* this_param) {
 				#ifdef DEBUG_THRESH
 					UDR0 =  analyze_output >> 8;
 				#endif
+
 				this_param->output_char = this_param->output_char << 1;
 				if(this_param->detected || analyze_output > this_param->thresh) {
 					this_param->output_char |= 1;
 					this_param->detected = 0;
 					this_param->trigger = NO_EDGE;
 				}
-//				if(this_param->start != 9) 
-//					this_param->input_buffer_resample_position -= this_param->boundary_alignment;
+
 				if(--(this_param->start) == 0) {
 					#if !defined(DEBUG_DUMP) && !defined(DEBUG_THRESH) && !defined(DEBUG_RS_DUMP)
 						UDR0 = this_param->output_char;
 					#endif
-					this_param->sin_acc = this_param->cos_acc = 0;
+					this_param->sin_acc = this_param->cos_acc = this_param->fsin_acc = this_param->fcos_acc = 0;
 					memset(this_param->resample_buffer_sin, 0, sizeof(int8_t) * this_param->resample_buffer_size);
 					memset(this_param->resample_buffer_cos, 0, sizeof(int8_t) * this_param->resample_buffer_size);
+					memset(this_param->resample_buffer_fsin, 0, sizeof(int8_t) * this_param->resample_buffer_size);
+					memset(this_param->resample_buffer_fcos, 0, sizeof(int8_t) * this_param->resample_buffer_size);
 					PORTD |= _BV(PB3);
 				}
 				this_param->input_buffer_resample_position -= this_param->boundary_alignment;
+//				this_param->input_buffer_resample_position += (this_param->input_buffer_increment >> 1);
 			}
 		}
 		this_param->samples++;
@@ -362,10 +382,16 @@ void init() {
 		float_temp = 40000. / freqs[i];
 		recv_params[i].input_buffer_increment = float2fix(float_temp);
 		recv_params[i].input_buffer_1_4phase = float2fix(float_temp / 4.);
+		recv_params[i].input_buffer_1_8phase = float2fix(float_temp / 8.);
+		recv_params[i].input_buffer_3_8phase = float2fix((float_temp * 3.) / 8.);
 		recv_params[i].resample_buffer_size = (uint8_t)ceil(64. / float_temp);
 		recv_params[i].resample_buffer_sin = resample_buffer_pool + resample_buffer_next_free;
 		resample_buffer_next_free += recv_params[i].resample_buffer_size;
 		recv_params[i].resample_buffer_cos = resample_buffer_pool + resample_buffer_next_free;
+		resample_buffer_next_free += recv_params[i].resample_buffer_size;
+		recv_params[i].resample_buffer_fsin = resample_buffer_pool + resample_buffer_next_free;
+		resample_buffer_next_free += recv_params[i].resample_buffer_size;
+		recv_params[i].resample_buffer_fcos = resample_buffer_pool + resample_buffer_next_free;
 		resample_buffer_next_free += recv_params[i].resample_buffer_size;
 		recv_params[i].boundary_alignment = float2fix((float_temp * (float)(recv_params[i].resample_buffer_size)) - 64.);
 		recv_params[i].thresh = thresholds[i];
