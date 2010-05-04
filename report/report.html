@@ -1,42 +1,21 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-
-<!--
-	This document provides the basis of a semantically structured web page 
-	authored in XHTML 1.0 Transitional using established Cornell University
-	naming conventions.
--->
-
+<html xmlns="http://www.w3.org/1999/xhtml">	
 <head>
 	<title>ECE 4760 Final Project: Acoustic Modem</title>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="Content-Language" content="en-us" />
 	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-	
-<!--
-	All layout and formatting should be controlled through Cascading Stylesheets (CSS).
-	The following link tag should appear in the head of every page in the website. see
-	styles/screen.css.
--->
-
 	<link rel="stylesheet" type="text/css" media="screen" href="screen.css" />
 </head>
 
 <body class="onecolumn">
-
-<!--
-	The following link provides a way for people using text-based browsers and
-	screen readers to skip over repetitive navigation elements so that they can 
-	get directly to the content. It is hidden from general users through CSS.
--->
 <div id="skipnav">
 	<a href="#content">Skip to main content</a>
 </div>
 
 <hr />
 
-<!-- The following div contains the Cornell University logo with unit signature -->
 <div id="cu-identity">
 
 	<div id="cu-logo">
@@ -50,37 +29,20 @@
 	</div>
 </div>
 
-<!-- The header div contains the main identity and main navigation for the site -->
 <div id="header">	
-	<!--
-		The navigation div contains the site's main navigation. These
-		links will be displayed in a horizontal, gray navigation bar 
-		under the unit signature banner.
-	-->	
 	<div id="navigation">
 		<ul>
 			<li><a href="#design">High Level Design</a></li>
 			<li><a href="#implementation">Implementation</a></li>
 			<li><a href="#results">Results</a></li>
-
 			<li><a href="#conclusion">Conclusion</a></li>
-			<li><a href="#appendix">Appendix</a></li>		
-			
-			<!-- More navigation as needed
-			<li><a href="#">Navigation 6</a></li>
-			-->
-						
+			<li><a href="#appendix">Appendix</a></li>				
 		</ul>
 	</div>
-	
 	<hr />
-	
-	<!-- 
-		The identity div contains the name of a main site section
-	-->
 	<div id="identity">
-<h1>Acoustic Data Modem</h1>
-<h4>Greg Malysa (gjm76) and Arseney Romanenko (asr96)</h4>
+		<h1>Acoustic Data Modem</h1>
+		<h4>Greg Malysa (gjm76) and Arseney Romanenko (asr96)</h4>
 	</div>
 </div>
 
@@ -88,7 +50,6 @@
 
 <div id="wrap">
 
-<!-- The content div contains the main content of the page -->
 <div id="content">
 	<div id="main">
 <center><div class="main-photo-large">
@@ -161,20 +122,65 @@ For instance, when sampling at 6 kHz, the possible aliases that are within our a
 true DC, 6 kHz, 12 kHz, and 18 kHz. Therefore, in selecting the frequencies for our transmission channels, if we choose 6 
 kHz as a transmit frequency, we cannot also use 12 or 18 kHz. Because the Fourier Transform estimator is implemented as a 
 moving average, it can also be interpreted as an FIR filter, which has a known frequency response. An N-term moving average 
-filter has a frequency response characterized by a maximum at DC and ?N/2? zeros evenly spaced around the unit circle. The 
+filter has a frequency response characterized by a maximum at DC and <img src="image004.png" alt="|N/2|" /> zeros evenly spaced around the unit circle. The 
 number of terms in the moving average filter for each frequency is chosen by having the length of the filter match the length 
 of each burst in time (1.6 ms). Because it is unlikely for these to match precisely, the filters are usually defined to extend 
 one sample longer than the burst. In general, therefore, with sampling frequency fs and target frequency f, the length of the 
-appropriate averaging filter is <img src="" alt="N=|64/(fs/f)|" />. For example, for 6 kHz, N is 10. Because the window is so short, it is important 
-to minimize the interference between frequency channels, which is most easily done by having each channel fall match with a zero 
+appropriate averaging filter is <img src="image006.png" alt="N=|64/(fs/f)|" />. For example, for 6 kHz, N is 10. Because the window is so short, it is important 
+to minimize the interference between frequency channels, which is most easily done by having each channel match with a zero 
 in the moving average for all of the other channels. Due to aliasing between the channels, a particular channel frequency may also 
-fall on the alias of a zero rather than the normal interpretation of the zero.
+fall on the alias of a zero rather than the normal interpretation of the location of the zero.
+<center><div class="main-photo-large">
+	<img src="6000hz.png" alt="" width="510"/>
+	<p class="caption">Sample Frequency Response for an 10-term Averager (used for 6 kHz)</p>
+</div></center>
+</p><p>
+Fortunately, it is possible to satisfy the requirement that each transmit frequency alias to a zero of all other transmit frequencies 
+for at least four frequencies in the range 20 Hz-20 kHz. Table 1 lists the zeros for the frequencies we have chosen. Aliases of these 
+zeros occur for each zero plus a multiple of the sampling frequency (4.8, 6, 8.4, or 10.8 kHz).
+<center><div class="main-photo-large">
+	<img src="zero_table.png" alt="" width="510"/>
+	<p class="caption">Zeros of N-Term Averagers</p>
+</div></center>
+</p><p>
+Finally, because the dip around each zero in the averager's response is fairly narrow, it is important to avoid spectral leakage. Because 
+the data we transmitted is organized into pulses, a window function is implicitly applied to the sine whose frequency we are attempting 
+to transmit. In the case of a naive implementation using a simple rectangular window of uniform amplitude, this leads to significant sidelobes
+as described <a href="http://en.wikipedia.org/wiki/Window_function#Rectangular_window">on Wikipedia</a>. In an effort to reduce the possibility 
+of spectral leakage, we chose to use a Hann window of equal length to our transmission burst. Other windows may have offered better 
+mainlobe-to-sidelobe ratios, but we felt that the Hann window was sufficient for our purposes.
+</p><p>
+As is described in the software implementation section, difficulties arise when using the magnitude of the FIR filter outputs alone, 
+which means that naive methods depending on absolute magnitude of a filter's output are insufficient. When processing a single sample 
+from the start of a pulse, with any filter it will appear similar to an impulse, which will cause the output to increase regardless 
+of what the filter's response is to the true frequency of the wave to which the sample belongs, and the output will not decrease 
+appropriately until more samples from the wave are processed. The A/D converters are also limited in resolution (in this case, 8 bits) 
+and all filtering/thresholding is performed in 8 or 16-bit <b>integer</b> arithmetic, because floating point requires too many cycles 
+to emulate, and fixed point introduces complications with verifying that operations like multiply are correct. This places a lower bound 
+on the quantization error that can occur, which leads to additional spectral leakage that can cause false positive bits in frequencies that
+are not actually present.
 </p>
 <h3 id="tradeoff">Design Tradeoffs</h3>
 <p>
+We made two large design trade-offs in this project: (1) we worked primarily with a single +5V supply (except for the +12 input which was also tied
+to our voltage reference), which limited the total power that we could pump into the output speaker; and (2) we worked with integer and fixed point 
+arithmetic on an 8-bit microcontroller. (1) Using a higher voltage or a double-ended
+supply would have increased our transmit power (and therefore our range), but the primary point of the project was to develop the software, not
+to worry about the hardware. The microcontroller could conveniently produce a 0-5 V wave centered around 2.5 V, so we decided to use this to drive
+the microphone directly (through a simple class A amplifier). (2) Although the Atmega was a requirement for use with the project, designing digital
+signal processing algorithms for implementation using only fixed point or integer arithmetic requires sacrifices in terms of accuracy which bears
+a significant cost in terms of data transmission speed and accuracy as our maximum SNR decreases due to resolution. We were also limited by the speed of the microcontroller and the frequency range supported
+by our microphone and speakers, which meant that we had to sacrifice the higher transmit speeds that would have been possible with ultrasonic frequencies
+rather than audible ones.
 </p>
 <h3 id="standards">Intellectual Property and Standards</h3>
-<p>
+<p>Our project should be free of intellectual property conflicts because we made a conscious effort not to learn about how commercial systems that
+complete a similar task are implemented. Instead we designed all of our signal processing algorithms, the circuits, and our software based on things
+that we learned from classes taken at Cornell. Our encoding scheme, OOK, is the only component of our project to have its own Wikipedia page, but
+we consider it to be a technique in the public domain because of how intuitively obvious it is.
+</p>
+<p>The only standard to which our project conforms is RS-232, which it uses for serial communications with a computer. The RS-232 compliant hardware
+is included in the Atmega644 UART and so was already prepackaged and ready for use.
 </p>
 
 <div class="bridge-section">
@@ -189,421 +195,116 @@ fall on the alias of a zero rather than the normal interpretation of the zero.
 <h3 id="trial">Trial And Error</h3>
 <p>
 </p>
-	<div class="bridge-section">
-	<h2 id="results">Results</h2>
 
-	<p><a href="#soft_ex">Software Execution</a> | <a href="#accuracy">Accuracy</a> | <a href="#safety">Safety Enforcement</a> | <a href="#interference">Interference and Accessibility</a></p>
-	<h3 id="soft_ex">Software Execution</h3>
-		<p>Due
-to careful consideration and planning of the non-blocking functions in our
-software, the user interactions with the Electric Etch performed over a serial
-terminal on a PC were all very concurrent and lag-free. Save for the response
-to the ‘help’ command, which transmitted a large chunk of text over serial, the
-microcontroller’s software operated without any hiccups or latency. Commands
-were still interpreted and acted upon, even while the stepper motors were in
-full motion. Longer software testing would have surely revealed bugs, but the
-basic functionality we aimed for worked consistently.
-		</p>
-
-		<h3 id="accuracy">Accuracy</h3>
-		<p>The
-biggest accuracy compromises came from the mechanical Etch-a-Sketch device
-itself. Over time, its backlash characteristics wandered, its knobs would
-randomly stiffen up, and some points on the screen would exhibit very
-inconsistent mechanical characteristics. For these reasons, the accuracy of
-drawing precise characters on the screen was a hit-and-miss affair. Backlash is
-common to many mechanical devices, but in the case of the Etch-a-Sketch, where
-no form of feedback was implemented, it proved to be quite a frustration.
-Otherwise, software kept an accurate time base and the circuitry also proved
-very reliable.
-		</p>
-		<h3 id="safety">Safety Enforcement</h3>
-		<p>
-		Since the device is highly mechanical as well as electrical, safety of both aspectes should be ensured. In order to enforce the mechanical safety, all the parts were carefully machined to be bolted together rather than tying or taping them. Also, since the motors require heavy duty powering, electronic chips as well as the motors tend to get rather hot. In order to avoid possible overheating of the components, all the chips were operated below their threshold and a heat sink was implemented to  H-bridge of the bipolar tilt motor.
-		</p>
-		<h3 id="interference">Interference and Accessibility</h3>
-
-		<p>
-		Most
-of the work on this project was performed outside of the ECE 476 lab in the
-labs of our respective project teams, where we had access to better equipment
-and more space. We therefore did not notice any interference with other
-people's designs, and since we didn't use any RF circuitry, no interference was
-expected. In terms of accessibility, our design requires users to be able to
-use some method of computer text entry, like a keyboard or voice recognition,
-to communicate to the device through a serial port terminal program running on
-a PC. Also, as this is a visual device, it is not at all useful for the
-visually-impaired. These are the only accessibility limitations which we
-thought of. When designing the terminal interface, we took care to give
-user-friendly textual descriptions of the functions, and look for and give
-feedback about input errors without using cryptic codes. For instance, instead
-of replying "RX Buffer Overflow" when a user types in too long of a command,
-the software actually says, "Sorry, your command was too long. Try again!" and
-suggests a comprehensive commands list for other problems. After all, we did
-design this project for the kids inside all of us!
-		</p>
+<div class="bridge-section">
+<h2 id="results">Results</h2>
+<p><a href="#soft_ex">Software Execution</a> | <a href="#accuracy">Accuracy</a> | <a href="#safety">Safety Enforcement</a> | <a href="#interference">Interference and Accessibility</a></p>
+<h3 id="soft_ex">Software Execution</h3>
+<p></p>
+<h3 id="accuracy">Accuracy</h3>
+<p></p>
+<h3 id="safety">Safety Enforcement</h3>
+<p></p>
+<h3 id="interference">Interference and Accessibility</h3>
+<p>
+</p>
 		
-		<div class="bridge-section">
-		<h2 id="conclusion">Conclusion</h2>
-		<p><a href="#analysis">Analysis of Results</a> | <a href="#st_conformity">Standards Conformity</a> | <a href="#IP">IP Considerations</a> | <a href="#ethical">Ethical Considerations</a> | <a href="#legal">Legal Considerations</a></p>
+<div class="bridge-section">
+<h2 id="conclusion">Conclusion</h2>
+<p><a href="#analysis">Analysis of Results</a> | <a href="#st_conformity">Standards Conformity</a> | <a href="#IP">IP Considerations</a> | <a href="#ethical">Ethical Considerations</a> | <a href="#legal">Legal Considerations</a></p>
+<h3 id="analysis">Analysis of Results</h3>
+<p></p>
+<p></p>
+<h3 id="st_conformity">Standards Conformity</h3>
+<p></p>
+<h3 id="IP">IP Considerations</h3>
+<p></p>
+<h3 id="ethical">Ethical Considerations</h3>
+<p></p>
+<h3 id="legal">Legal Considerations</h3>
+<p></p>
 
-		<h3 id="analysis">Analysis of Results</h3>
-		<p>On
-the whole, we were able to successfully achieve the functions we set out to
-implement by motorizing the classic Etch-a-Sketch toy. We implemented a working
-erasing mechanism, and had an imperfect but satisfactory character set which we
-could draw on the screen. Like we intended, we were able to draw static
-messages and display minute time on the Electric Etch. In hindsight, we agree
-that we should have spent more time on the software with clear, well-rested
-minds. The lack of sleep amplified our frustrations with the Etch-a-Sketch’s mechanical
-problems, and slowed down the debugging process. In the end, we fear that we
-might have had some yet-to-be-discovered software bugs that would have reared
-their heads if we had more time to test.</p>
-<p>But,
-setting time management issues aside, if we were to repeat the ECE 4760 experience
-with a similar project, we would have certainly implemented some kind of
-feedback mechanism that would help us better compensate for the Etch-a-Sketch’s
-mechanical shortcomings. This could be done by using servomotors instead of
-stepper motors. We were, however, very proud of our stand and assembly, which
-was fashioned completely out of scrap parts and yet looked very polished
-&#8211; even matching the Etch-a-Sketch’s color scheme!</p>
-		<h3 id="st_conformity">Standards Conformity</h3>
-		<p>
-		As
-stated before, the only notable standard involved in our design was the RS-232
-serial protocol used by the microcontroller to communicate with the PC. This common
-standard was implemented in the hardware of the MEGA644 microcontroller and in
-the MAX233 level transceiver, removing any efforts to conform to it from us,
-the designers.
-		</p>
+<div class="bridge-section">
+<h2 id="appendix">Appendix</h2> 
+<p><a href="#code">Source Code</a> | <a href="#schematics">Schematics</a> | <a href="#parts">Parts List</a> | <a href="#task">Task Division</a> | <a href="#reference">References</a> | <a href="#acknowledgements">Acknowledgements</a></p>
+<h3 id="code">Source Code</h3>
+<p>The most recent version of our source code is available under the GNU GPL v3. It can be obtained from our
+<a href="https://code.google.com/p/ece4760-acoustic-modem">Google Code project</a> via Subversion:</p>
+<pre style="font-size: 1.5em;">svn checkout http://ece4760-acoustic-modem.googlecode.com/svn/trunk/ ece4760-acoustic-modem-read-only</pre>
 
-		<h3 id="IP">IP Considerations</h3>
-		<p>
-		Our
-software borrowed the line-drawing code from the <a
-href="http://instruct1.cit.cornell.edu/courses/ee476/labs/s2009/lab4code/video_codeGCC644.c">sample
-code</a> provided by Bruce Land for <a
-href="http://instruct1.cit.cornell.edu/courses/ee476/labs/s2009/lab4.html">Lab
-4</a> of this class, which he credits to David Rodgers, the author of &quot;Procedural
-Elements of Computer Graphics&quot;.  While we did not get a hold of this book
-for verification, we referred to the University of North Carolina's <a
-href="http://www.cs.unc.edu/~mcmillan/comp136/Lecture6/Lines.html">web page</a>
+<h3 id="schematics">Schematics</h3>
 
-on line-drawing algorithms to understand how this particular implementation
-worked.
-		</p><p>
-		We
-also acknowledge <a href="http://angelayuan.com/projects.html">Angela Yuan's
-Etch-a-Sketch clock project</a> as the source of our inspiration, and the trail
-of Etch-a-Sketch projects which she references in her documentation.
-Fortunately, none of these projects had accurate, in-depth information of how
-they were implemented &#8211; not even so much as the chips used for the
-projects. This left much of the implementation for us to build up from scratch,
-and so we feel we have not compromised the integrity of our work. Our work,
-presented on this website, is in the public domain and is in no way proprietary
-information &#8211; that is to say, it is for academic purposes only and is not
-intended by us, the designers, for anything outside the purposes of this class,
-including, but not limited to, personal profit, ending world hunger, or
-weaponry. We feel that we fully align with Cornell's <a
-href="http://www.cuinfo.cornell.edu/Academic/AIC.html">Code of Academic
-Integrity</a>.
-		</p><p>
-		Furthermore,
-we did not attempt to reverse-engineer any pre-existing designs, and we neither
-claim invention nor exclusive rights to any of our work. We are not advertising
-this project for monetary gain. We feel that by acknowledging this, we are
-avoiding any patent and trademark issues. As this is not necessarily a novel
-idea in the sense that it has not been done before, it does not readily present
-itself as a patent opportunity, and we do not aim to pursue any patents.
-		</p><p>
+<h3 id="parts">Parts List</h3>
+<p>Parts listed are per board. Two such boards were constructed to complete a transmit/receive pair.
+<center>
+<table cellspacing="0" cellpadding="0">
+<tr><th>Name</th><th>Part #</th><th>Vendor</th><th>Unit Price</th><th>Quantity</th></tr>
+<tr class="row1"><td>Microcontroller</td><td>Atmega644</td><td>Atmel</td><td>$8.00</td><td>1</td></tr>
+<tr class="row2"><td>RS-232 Level Shifter</td><td>MAX233</td><td>Maxim IC</td><td>Free<sup>1</sup></td><td>1</td></tr>
+<tr class="row1"><td>8-Bit Parallel D/A Converter</td><td>AD7801</td><td>Analog Devices</td><td>Free<sup>2</sup></td><td>1</td></tr>
+<tr class="row2"><td>Single/Dual Rail-to-Rail Operational Amplifier</td><td>MAX4281/MAX4282</td><td>Maxim IC</td><td>Free<sup>2</sup></td><td>2<sup>3</sup></td></tr>
+<tr class="row1"><td>+2.5 V Reference</td><td>MAX6325</td><td>Maxim IC</td><td>Free<sup>2</sup></td><td>1</td></tr>
+<tr class="row2"><td>3 Watt, 8-Ohm Speaker</td><td>668-1125-ND</td><td>Digi-Key</td><td>$5.03</td><td>1</td></tr>
+<tr class="row1"><td>Omnidirectional Electret Microphone</td><td>359-1029-ND</td><td>Digi-Key</td><td>$1.50</td><td>1</td></tr>
+<tr class="row2"><td><a href="http://www.nbb.cornell.edu/neurobio/land/PROJECTS/Protoboard476/index.html">Custom PC Board</a></td><td>N/A</td><td>Bruce Land</td><td>$4.00</td><td>1</td></tr>
+<tr class="row1"><td>Solder Board</td><td>N/A</td><td>476 Lab</td><td>$2.50</td><td>2</td></tr>
+<tr class="row2"><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="row1"><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="row2"><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="row1"><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="row2"><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
+</center>
+</p>
+<p>
+<ul>
+	<li><sup>1 - Donated by the CUAUV team, which has a stockpile of them but no longer uses the part in active designs.</sup></li>
+	<li><sup>2 - Obtained via free sample from the manufacturer, no NDA required.</sup></li>
+	<li><sup>3 - Three operational amplifiers in total are required. Two 4282s or a 4282 and a 4281 are sufficient to implement the circuit.</sup></li>
+</ul>
+</p>
 
-		We
-are open to publishing opportunities should interested parties make themselves
-known.
-		</p>
-		<h3 id="ethical">Ethical Considerations</h3>
-		<p>
-		Our device operates in a small
-confined region without any wide range of motion, projectiles, or signal
-transmission. As long as the user makes sure to follow the electrical voltage
-and current requirements and to keep a safe distance from the gear set, our
-device would not impose any physical or environmental threat to its users and
-surroundings. As an advanced version of a classic toy, our device would not
-cause conflicts of interest of any form. Based on our results, we do not claim
-to have the perfect motorized control of Etch-a-Sketch. There are some less
-obvious mechanical complications are involved, and we recognize that our design
-has limitations to address the complications. Because our design does not provide
-any advantage to any group of people or individuals over others, there is no
-bribery involved with out project. Since our project was to design an advanced
-toy, it does not have great effect on the contemporary cutting-edge technology.
-What is moderately pertinent to our project may be any device that requires the
-precise motor position control, such as plotter, machining equipments, or
-printing equipments. We were exercising our technical skills such as soldering
-and machining only if we were allowed, when we were allowed, and where we were
-allowed. We acknowledge our mechanical engineer classmates who have given very
-useful advices for the structure of our device and appreciate their helpful
-input to our design. Also, we acknowledge our respective labs where we had a
-great advantage of using the facilities as well as mechanical and electrical
-components. Our device does not have any limitation for any group of people or
-individuals except possibly for visually challenged individuals since it is a
-displaying device. Our device is a passive device, which does not contain or
-transmit any personal data or impose threat to anyone's property of reputation.
-While we were designing our device, we were cooperative with our classmates,
-especially the ones who were also using stepper motors, in order to share
-information and encourage each others design projects.
-		</p>
-		<h3 id="legal">Legal Considerations</h3>
-		<p>
-		As mentioned above in ethical
-considerations section, our device is a passive, confined, and safe device
-which does not transmit any signal. Therefore, there are no crucial legal
-considerations involved in our project.
-		</p>
-
-		
-		<div class="bridge-section">
-		<h2 id="appendix">Appendix</h2> 
-		<p><a href="#code">Source Code</a> | <a href="#schematics">Schematics</a> | <a href="#parts">Parts List</a> | <a href="#task">Task Division</a> | <a href="#reference">References</a></p>
-
-		
-		<h3 id="code">Source Code</h3>
-		<p><a href="project_files/source_code.zip">Download Source Code</a></p>
-		
-		<h3 id="schematics">Schematics</h3>
-		<p><a href="project_files/Electric_Etch_Schematic.pdf">Download Electric Etch Schematics</a></p>
-		<p><a href="http://www.nbb.cornell.edu/neurobio/land/PROJECTS/Protoboard476/index.html">Protoboard Schematics</a></p>
-		
-		<h3 id="parts">Parts List</h3>
-
-		<table cellspacing="0" cellpadding="0" border="1">
-			<thead>
-				<tr>
-					<th>Item</th>
-					<th>Part Number</th>
-					<th>Vendor</th>
-					<th>Unit Price</th>
-
-					<th>Quantity</th>
-					<th>Cost</th>
-				</tr>
-			</thead>
-			<tfoot>
-				<tr class="row1">
-					<td></td>
-					<td></td>
-
-					<td></td>
-					<td></td>
-					<td>Total Cost</td>
-					<td>$51</td>
-				</tr>			
-			</tfoot>
-			<tbody>
-				<tr class="row1">
-
-					<td>Microcontroller</td>
-					<td>ATmega644</td>
-					<td>ATMEL</td>
-					<td>$8</td>
-					<td>1</td>
-					<td>$8</td>
-
-				</tr><tr class="row2">
-					<td>Etch-a-Sketch</td>
-					<td>N/A</td>
-					<td>Ohio Art Company</td>
-					<td>$11</td>
-					<td>1</td>
-
-					<td>$11</td>
-				</tr><tr class="row1">
-					<td>Unipolar stepper motor</td>
-					<td>Vexta PX243M-01AA</td>
-					<td>Jameco</td>
-					<td>$10</td>
-
-					<td>2</td>
-					<td>$20</td>
-				</tr><tr class="row2">
-					<td>Bipolar stepper motor</td>
-					<td>Airpax LB82773-M1</td>
-					<td>Scrap(476 lab)</td>
-
-					<td>Borrowed</td>
-					<td>1</td>
-					<td>0</td>
-				</tr><tr class="row1">
-					<td>Darlington arrays</td>
-					<td>ULN2003A</td>
-
-					<td>STMicroelectronics</td>
-					<td>Sampled</td>
-					<td>6</td>
-					<td>0</td>
-				</tr><tr class="row2">
-					<td>Stepper motor controller</td>
-
-					<td>L297</td>
-					<td>STMicroelectronics</td>
-					<td>Sampled</td>
-					<td>3</td>
-					<td>0</td>
-				</tr><tr class="row1">
-
-					<td>H-bridge</td>
-					<td>L298</td>
-					<td>STMicroelectronics</td>
-					<td>Sampled</td>
-					<td>1</td>
-					<td>0</td>
-
-				</tr><tr class="row2">
-					<td>RS232 level shifter</td>
-					<td>MAX233CPP</td>
-					<td>Maxim</td>
-					<td>Sampled</td>
-					<td>1</td>
-
-					<td>0</td>
-				</tr><tr class="row1">
-					<td>White board</td>
-					<td>N/A</td>
-					<td>N/A</td>
-					<td>$6</td>
-
-					<td>2</td>
-					<td>$12</td>
-				</tr><tr class="row2">
-					<td>Custom PC board</td>
-					<td>N/A</td>
-					<td>N/A</td>
-
-					<td>Owned</td>
-					<td>1</td>
-					<td>0</td>
-				</tr><tr class="row1">
-					<td>Gear set</td>
-					<td>N/A</td>
-
-					<td>Scrap(TAM lab)</td>
-					<td>Borrowed</td>
-					<td>1</td>
-					<td>0</td>
-				</tr><tr class="row2">
-					<td>Bushings</td>
-
-					<td>N/A</td>
-					<td>Scrap(TAM lab)</td>
-					<td>Borrowed</td>
-					<td>3</td>
-					<td>0</td>
-				</tr><tr class="row1">
-
-					<td>Diode</td>
-					<td>1N5350B</td>
-					<td>Scrap(CUAUV lab)</td>
-					<td>Borrowed</td>
-					<td>8</td>
-					<td>0</td>
-
-				</tr><tr class="row2">
-					<td>SOIC carrier</td>
-					<td>N/A</td>
-					<td>Scrap(CUAUV lab)</td>
-					<td>Borrowed</td>
-					<td>3</td>
-
-					<td>0</td>
-				</tr><tr class="row1">
-					<td>Heat sink</td>
-					<td>N/A</td>
-					<td>Scrap(CUAUV lab)</td>
-					<td>Borrowed</td>
-
-					<td>1</td>
-					<td>0</td>
-				</tr><tr class="row2">
-					<td>Acrylic and plastic</td>
-					<td>N/A</td>
-					<td>Scrap(CUAUV lab)</td>
-
-					<td>Borrowed</td>
-					<td>N/A</td>
-					<td>0</td>
-				</tr><tr class="row1">
-					<td>Screws</td>
-					<td>N/A</td>
-
-					<td>Scrap(CUAUV lab)</td>
-					<td>Borrowed</td>
-					<td>30</td>
-					<td>0</td>
-				</tr><tr class="row2">
-					<td>Power supply</td>
-
-					<td>ATX power supply</td>
-					<td>Scrap(CUAUV lab)</td>
-					<td>Borrowed</td>
-					<td>1</td>
-					<td>0</td>
-				</tr>
-
-			</tbody>
-		</table>
-		
-		<h3 id="task">Task Division</h3>
-		<h4> Kirill </h4>
-		<ul>
-		<li> Initial software planning </li>
-
-		<li> Software implementation </li>
-		<li> Mechanical drafting </li>
-		<li> Software debugging </li>
-		<li> Report </li>
-		</ul> 
-		<h4> Emily </h4>
-
-		<ul>
-		<li> Initial software planning </li>
-		<li> Mechanical drafting and Machining</li>
-		<li> Matlab character developing</li>
-		<li> Report </li>
-
-		<li> Website </li>
-		</ul>
-		
-		<h3 id="reference">References</h3>
-		<h4> Datasheets </h4>
-		<ul>
-		<li><a href="http://instruct1.cit.cornell.edu/courses/ee476/AtmelStuff/mega644full.pdf">Atmel Atmega64</a></li><li>
-
-		<a href="datasheets/l297.pdf">Stepper Motor Controller</a></li><li>
-		<a href="datasheets/l298.pdf">H-Bridge</a></li><li>
-		<a href="datasheets/ULN2003A.pdf">Darlington Arrays</a></li><li>
-		<a href="datasheets/PX243M-01AA.pdf">Unipolar Stepper Motor</a></li>
-		</ul>
-		
-		<h4> Vendor Sites </h4>
-
-		<ul>
-		<li><a href="http://www.atmel.com/">Atmel</a></li><li>
-		<a href="http://www.jameco.com/webapp/wcs/stores/servlet/StoreCatalogDisplay?storeId=10001&catalogId=10001&langId=-1">Jameco</a></li><li>
-		<a href="http://www.st.com/stonline/">STMicroelectronics</a></li><li>
-		<a href="http://www.maxim-ic.com/">Maxim</a></li>
-		</ul>
-		
-		<h4> Other Online Resources </h4>
-
-		<ul>
-		<li><a
-href="http://instruct1.cit.cornell.edu/courses/ee476/labs/s2009/lab4code/video_codeGCC644.c"> 
-ECE476 lab 4 sample code</a></li><li>
-<a
-href="http://www.cs.unc.edu/~mcmillan/comp136/Lecture6/Lines.html">Line Drawing Algorithm from University of North Carolina</a></li><li>
-<a href="http://angelayuan.com/projects.html">Angela Yuan's
-Etch-a-Sketch clock project</a></li>
-		</ul>
-
+<h3 id="task">Task Division</h3>
+<h4>Greg Malysa</h4>
+<ul>
+	<li>Hardware Design</li>
+	<li>Hardware Implementation</li>
+	<li>DSP Algorithm Design</li>
+	<li>Software Debugging</li>
+	<li>Report</li>
+	<li>Website</li>
+</ul> 
+<h4>Arseney Romanenko</h4>
+<ul>
+	<li>Software Implementation</li>
+	<li>DSP Algorithm Design</li>
+	<li>C Conversion of MATLAB Implementation</li>
+	<li>Software Debugging</li>
+	<li>Report</li>
+	<li>Website</li>
+</ul>
+<h3 id="acknowledgements">Acknowledgements</h3>
+<p>
+<u><i>TODO.</i></u>
+</p>
+<h3 id="reference">References</h3>
+<h4> Datasheets </h4>
+<ul>
+	<li><a href="http://instruct1.cit.cornell.edu/courses/ee476/AtmelStuff/mega644full.pdf">Atmel Atmega64</a></li>
+	<li><a href="AD7801.pdf">AD7801 - 8-bit Parallel DAC</a></li>
+	<li><a href="MAX4174-MAX4284.pdf">MAX4281/MAX4282 - Single/Dual Rail-to-Rail Operational Amplifier</a></li>
+	<li><a href="MAX6325-MAX6350.pdf">MAX6235 - +2.5 V Reference</a></li>
+</ul>
+<h4> Vendor Sites </h4>
+<ul>
+	<li><a href="http://www.atmel.com/">Atmel</a></li>
+	<li><a href="http://www.maxim-ic.com/">Maxim IC</a></li>
+	<li><a href="http://www.analog.com/">Analog Devices</a></li>
+</ul>
+<h4> Other Online Resources </h4>
+<ul>
+	<li><a href="http://en.wikipedia.org/wiki/Window_function">Description of several window functions and their spectral properties</a></li>
+</ul>
 <hr />
 
 </body>
