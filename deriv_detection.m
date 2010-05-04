@@ -11,9 +11,9 @@ hold on;
 
 % Parameters
 fs = 40000;
-f = 6000;
+f = 4800;
 buflen = ceil(64. / (fs/f));
-thresh = 140;
+thresh = 200;
 dt = 50;
 offset = 69;
 
@@ -69,8 +69,8 @@ catch exception
     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
     fopen(rserial);
 end
-fprintf(sserial, 'hs');
-input = fread(rserial, 1023, 'int8');
+fprintf(sserial, 's');
+% input = fread(rserial, 1023, 'int8');
 fclose(rserial);
 delete(rserial);
 fclose(sserial);
@@ -84,17 +84,17 @@ clear rserial;
 %input = input + 4*randn(1, 1024);
 
 % Run input through resampler
-j = 11;
+j = 1;
 k = j + fs/(4*f);
-% m = j + fs/(8*f);
-% n = j + (3*fs)/(8*f);
+m = j + fs/(8*f);
+n = j + (3*fs)/(8*f);
 step = fs/f;
 i = 1;
 l = 1;
 rc = zeros(1, buflen);
 rs = zeros(1, buflen);
-% rm = zeros(1, buflen);
-% rn = zeros(1, buflen);
+rm = zeros(1, buflen);
+rn = zeros(1, buflen);
 ic = zeros(1, 1);
 is = zeros(1, 1);
 % im = zeros(1, 1);
@@ -103,8 +103,8 @@ mcs = zeros(1, 1);
 % mmn = zeros(1, 1);
 csum = 0;
 ssum = 0;
-% msum = 0;
-% nsum = 0;
+msum = 0;
+nsum = 0;
 start = 0;
 samples = 0;
 detected = 0;
@@ -112,12 +112,12 @@ prev_mag = 0;
 % prev_shift_mag = 0;
 mag = 0;
 trigger = 0;    % No edge
-while (k < length(input))
+while (n < length(input))
     % Find integer offsets
     cIndex = floor(j);
     sIndex = floor(k);
-%     mIndex = floor(m);
-%     nIndex = floor(n);
+    mIndex = floor(m);
+    nIndex = floor(n);
     
     % Update running structures
     csum = csum - rc(i);
@@ -126,17 +126,19 @@ while (k < length(input))
     ssum = ssum - rs(i);
     rs(i) = input(sIndex);
     ssum = ssum + rs(i);
-%     msum = msum - rm(i);
-%     rm(i) = input(mIndex);
-%     msum = msum + rm(i);
-%     nsum = nsum - rn(i);
-%     rn(i) = input(nIndex);
-%     nsum = nsum + rn(i);
+    msum = msum - rm(i);
+    rm(i) = input(mIndex);
+    msum = msum + rm(i);
+    nsum = nsum - rn(i);
+    rn(i) = input(nIndex);
+    nsum = nsum + rn(i);
 
     subplot(2, 1, 1);
     hold on;
     plot(j, csum, 'bx');
     plot(k, ssum, 'rx');
+    plot(m, msum, 'gx');
+    plot(n, nsum, 'cx');
     subplot(2, 1, 2);
     hold on;
     ic(l) = j;
@@ -145,8 +147,9 @@ while (k < length(input))
 %     prev_shift_mag = mmn(max(1, l-1));
     
     % Calculate our signal magnitude
-%     mag = max(abs(csum), abs(ssum));
-    mag = max(abs(csum), abs(ssum));
+%     mag = max([abs(csum), abs(ssum), abs(msum)]);
+    mag = sum([abs(csum), abs(ssum), abs(msum), abs(nsum)]) / 2;
+%     mag = sum([abs(csum), abs(ssum)]);
 %     shift_mag = max(abs(msum), abs(nsum));
     mcs(l) = mag;
 %     mmn(l) = shift_mag;
@@ -217,14 +220,19 @@ while (k < length(input))
         % Advance input parser state machine
         if (start > 0)
             start = start - 1;
-            j = j - (step * buflen - 64);
-            k = k - (step * buflen - 64);
+            j = j - (step * buflen - 64) + step/2;
+            k = k - (step * buflen - 64) + step/2;
+            m = m - (step * buflen - 64) + step/2;
+            n = n - (step * buflen - 64) + step/2;
             if (start == 0)
                 rs = zeros(1, buflen);
                 rc = zeros(1, buflen);
+                rm = zeros(1, buflen);
+                rn = zeros(1, buflen);
                 csum = 0;
                 ssum = 0;
-                
+                msum = 0;
+                nsum = 0;
             end
         end
         detected = 0;
@@ -236,6 +244,8 @@ while (k < length(input))
     % Update buffers/pointers/offsets
     j = j + step;
     k = k + step;
+    m = m + step;
+    n = n + step;
     i = i + 1;
     l = l + 1;
     if (i > buflen)

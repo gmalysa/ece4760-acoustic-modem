@@ -6,7 +6,9 @@ figure(1);
 hold on;
 
 fs = 40000;
-f = 6000;
+f = 4800;
+f2 = 6000;
+f3 = 7200;
 buflen = ceil(64. / (fs/f));
 thresh = 35000;
 dt = -1000;
@@ -24,37 +26,37 @@ bauds = 2400;
 baudr = 230400;
 
 try
-    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
+    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
 catch exception
     delete(sserial);
     clear sserial;
-    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
+    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
 end
 try
     fopen(sserial);
 catch exception
     delete(sserial);
     clear sserial;
-    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '');
+    sserial = serial(COMs, 'BaudRate', bauds, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
     fopen(sserial);
 end
 try
-    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
 catch exception
     delete(rserial);
     clear rserial;
-    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
 end
 try
     fopen(rserial);
 catch exception
     delete(rserial);
     clear rserial;
-    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
+    rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
     fopen(rserial);
 end
-fprintf(sserial, 'a');
-input = fread(rserial, 1023, 'int8');
+fprintf(sserial, 'af');
+%input = fread(rserial, 1023, 'int8');
 
 fclose(rserial);
 delete(rserial);
@@ -147,7 +149,7 @@ while (n < length(input))
     
     % Attempt detection
     trigger = 0;
-    mag = max(csum^2 + ssum^2, msum^2 + nsum^2);
+    mag = mean(csum^2 + ssum^2, msum^2 + nsum^2);
     if mag > thresh
 %         if abs(csum) > abs(ssum)
 %             subplot(2, 1, 1);
@@ -198,18 +200,18 @@ while (n < length(input))
                 line([sIndex sIndex], [-200 200]);
                 detected = 1;
             end
-            rc = zeros(1, buflen);
-            rs = zeros(1, buflen);
-            rm = zeros(1, buflen);
-            rn = zeros(1, buflen);
-            csum = 0;
-            ssum = 0;
-            msum = 0;
-            nsum = 0;
-            j = j - (step * buflen - 64);
-            k = k - (step * buflen - 64);
-            m = m - (step * buflen - 64);
-            n = n - (step * buflen - 64);
+%             rc = zeros(1, buflen);
+%             rs = zeros(1, buflen);
+%             rm = zeros(1, buflen);
+%             rn = zeros(1, buflen);
+%             csum = 0;5
+%             ssum = 0;
+%             msum = 0;
+%             nsum = 0;
+            j = j - (step * buflen - 64) + step/2;
+            k = k - (step * buflen - 64) + step/2;
+            m = m - (step * buflen - 64) + step/2;
+            n = n - (step * buflen - 64) + step/2;
         end
         
         if (detected && start > 0)
@@ -244,5 +246,6 @@ subplot(2, 1, 2);
 hold on;
 plot(ic, mcs, 'k');
 plot(im, mmn, 'r');
+plot((ic + im) / 2, (mcs+ mmn)./2, 'g');
 plot([1:length(input)], 0, 'k');
 %plot(is, rs, 'r');
