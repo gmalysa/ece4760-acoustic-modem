@@ -1118,6 +1118,9 @@ a:active {
 
 	}
 
+a.image, a.image:active, a.image:hover, a.image:visited {
+	border-bottom: none;
+}
 	
 
 /* 
