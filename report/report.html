@@ -138,8 +138,8 @@ fall on the alias of a zero rather than the normal interpretation of the locatio
 Fortunately, it is possible to satisfy the requirement that each transmit frequency alias to a zero of all other transmit frequencies 
 for at least four frequencies in the range 20 Hz-20 kHz. Table 1 lists the zeros for the frequencies we have chosen. Aliases of these 
 zeros occur for each zero plus a multiple of the sampling frequency (4.8, 6, 8.4, or 10.8 kHz).
-<center><div class="main-photo-large">
-	<img src="zero_table.png" alt="" width="510"/>
+<center><div class="main-photo-largest">
+	<img src="zero_table.png" alt="" width=630"/>
 	<p class="caption">Zeros of N-Term Averagers</p>
 </div></center>
 </p><p>
@@ -185,11 +185,21 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 
 <div class="bridge-section">
 <h2 id="implementation">Implementation</h2>
-<p><a href="#hardware">Hardware</a> | <a href="#software">Software</a> | <a href="#trial">Trial And Error</a></p>
+<p><a href="#hardware">Hardware</a> | <a href="#software">Software</a>: <a href="#transmit">Transmit</a> <a href="#receive">Receive</a> <a href="#client">Client-Side</a> | <a href="#trial">Trial And Error</a></p>
 <h3 id="hardware">Hardware</h3>
 <p>
 </p>
 <h3 id="software">Software</h3>
+<h4 id="transmit">Transmit</h4>
+<center><div class="main-photo-largest">
+	<img src="software_transmit.png" alt="" width="630"/>
+	<p class="caption">Software Transmit Sequence</p>
+</div></center>
+<p>The software transmit system is centered around the serial Rx code in the main loop and the waveform lookup in the ISR. The serial Rx code in the main loop is simple: if a serial byte exists in the serial receive buffer, the byte is placed in one of the output channels, scheduled in a round-robin fashion. These channels each have a state-machine status associated with it. When there is no data on a channel, its status is <span class="code">IDLE</span>. Once the serial Rx code places a byte in a channel (only placing the data in an <span class="code">IDLE</span> channel), it sets the status to <span class="code">START_BIT</span>, indicating to the ISR that the channel is ready to transmit the start bit. 
+</p>
+<p>The main ISR runs off of timer 1 at 40 kHz (500 cycles @ 20MHz clock); timer 1 also runs a secondary ISR 20 cycles beforehand to put the CPU to sleep in order to ensure consistent timing for the main ISR. The ISR executes the waveform lookup and generation immediately after entry in order to avoid any variable-length instructions that could cause inconsistent timing.<span class="aside"><span class="title">Why frequency tables?</span><span class="body">Previously in class, we generated sinusoids through Direct Digital Synthesis (DDS) through the PWM port. For this project, we significantly simplified our output scheme by utilizing a custom sine table which we placed in the AVR's flash memory. Since there are a limited number of transmit frequencies, we can use Matlab to precompute 64 samples for every possible combination of frequencies. A lookup into flash memory, while slower than RAM access, is much faster than full DDS. The only disadvantage with this scheme is that we must recompute the table every time we wish to change the transmit frequencies or relative amplitudes.</span></span> To determine which waveform to use, the ISR examines the states of all the channels once every 64 iterations. The states indicate whether the state is <span class="code">IDLE</span>, ready to trasmit the <span class="code">START_BIT</span> (represented by 1<sub>S</sub> in the figure above), transmitting the Nth bit of the channel (starting with the MSB at 0), or trasmitting the <span class="code">STOP_BIT</span> (represented by 0<sub>S</sub> in the figure above). The ISR combines the appropriate bit of each channel into a 3-bit number with the MSB indicating the presence of 7.2 kHz, the middle bit indicating the presence of 6.0 kHz and the LSB indicating the presence of 4.8 kHz. This 3-bit number can now be used as an offset into our 2D frequency table. The first dimension of this table is the 3-bit number which indicates the combination of frequencies we wish to generate. The second dimension is a 64-element array corresponding to the 64 samples in the waveform, with each value directly correlating with a voltage range between 0V - 5V. After determining the correct waveform, the ISR increments the status of all the channels and spends the next 64 iterations outputting the appropriate samples to our DAC on PORT C. The DAC is easy to use: we simply drive the write-enable pin low, load our output onto the DAC's input pins, and drive the write-enabled pin high. The DAC takes care of the rest.
+</p>
+<h4 id="receive">Receive</h4>
 <p>
 </p>
 <h3 id="trial">Trial And Error</h3>
@@ -270,6 +280,7 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 	<li>Hardware Design</li>
 	<li>Hardware Implementation</li>
 	<li>DSP Algorithm Design</li>
+	<li>MATLAB Implementation</li>
 	<li>Software Debugging</li>
 	<li>Report</li>
 	<li>Website</li>
