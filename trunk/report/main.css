@@ -1282,6 +1282,16 @@ img {
 	text-align: center;
 
 	}
+	
+.main-photo-largest {
+
+	margin: 20px 0;
+
+	width: 630px;
+	text-align: center;
+
+	}
+
 
 	
 
@@ -1325,7 +1335,7 @@ img {
 
 	
 
-.main-photo-large .caption, .main-photo-small .caption {
+.main-photo-largest .caption, .main-photo-large .caption, .main-photo-small .caption {
 
 	margin: 0;
 
@@ -1422,7 +1432,33 @@ img {
 	}
 
  
-
+.code {
+	font-family: "courier new";
+}
+ 
+ .aside {
+	float: right;	
+	margin: 15px 15px 15px 15px;
+	width: 40%;
+	/*border: 1px solid #fff;*/
+ }
+ 
+ .aside .body {
+	padding: 15px 15px 15px 15px;
+	background-color: #222;
+	display: block;
+ }
+ 
+ .aside .title {
+	padding: 5px 5px 5px 5px;
+	padding-top: 0px;
+	padding-bottom: 10px;
+	margin: 0px 0px 0px 0px;
+	background-color: #000;
+	display: block;
+	font-weight: bold;
+ }
+ 
 /****************************************
 
  * Tables
