@@ -188,6 +188,16 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 <p><a href="#hardware">Hardware</a> | <a href="#software">Software</a>: <a href="#transmit">Transmit</a> <a href="#receive">Receive</a> <a href="#client">Client-Side</a> | <a href="#trial">Trial And Error</a></p>
 <h3 id="hardware">Hardware</h3>
 <p>
+The hardware for the acoustic modem is relatively simple. It can be broken into four sections: power management circuitry (1), Microcontroller circuitry (2), speaker driving circuitry (3), and microphone processing circuitry (4).
+<center><div class="main-photo-large">
+	<img src="real_board_picture_segments.png" alt="" width="510"/>
+	<p class="caption">Actual Implemented Circuit Segmented by Functional Region</p>
+</div></center>
+<p><b>Power Management</b> - The power managment circuitry consists of an LM34T05 Linear Regulator, which accepts an input voltage of about 9-12 V and produces +5 V. It is capable of driving up to 1 Amp of current without dropping below +5 V, which is necessary to support the class A amplifier implementation used to drive the speaker.</p>
+<p><b>Microcontroller</b> - The microcontroller circuitry is all housed on the <a href="http://www.nbb.cornell.edu/neurobio/land/PROJECTS/Protoboard476/index.html">custom PC board</a> provided by Bruce Land. The schematic implemented on this custom PC board is reproduced in our schematic listing for completeness. </p>
+<p><b>Speaker Driving Circuitry</b> - An AD7801 D/A Converter is connected to PORT C of the Atmega644. It is driven in parallel with digital samples to be converted to an analog signal. The output of the DAC goes through a 2nd order passive low-pass filter with cutoff at 19.9 kHz to attenuate the high frequencies created by the edges on the DAC output. Next the analog signal is fed through an inverting amplifier with a potentiometer as the feedback loop, allowing us to modify the gain. This is important because the low resolution of the DAC makes it beneficial to synthesize a wave of as large amplitude as possible, but the actual speaker-driving amplifier is not rail-to-rail, so the signal itself must be less than 2.5 V in amplitude. Luckily, analog signals have infinite precision, so information is not lost (although SNR decreases a little bit) by applying less-than-unity gain through this operational amplifier. The output of the DAC is centered around a virtual ground of +2.5 V supplied by the MAX6325 reference, and this virtual ground is maintained up through the speaker driving circuitry.</p>
+<p>The speaker is driven with the operational amplifier's output buffered by a common-drain JFET stage followed by a common-collector BJT stage, biased by an active load implemented as an N-channel MOSFET current mirror. The reference current is implemented using a BJT connected by a potentiometer to VCC, allowing us to modify the load current after the circuit has been built, which helps adjust the parameters to account for variations in the discrete transistors used. Originally the op-amp drove the BJT CC stage directly, but when delivering high power near the positive rail, a strange type of instability occurred resulting in the synthesis of several waves in the MHz range. Adding the second voltage buffer to the op-amp output fixes the problem and delivers the wave to the speaker without significant distortion.</p>
+<p><b>Microphone Processing Circuitry</b> - The microphone used is an electret condenser type with a built-in voltage buffer JFET. Following the recommended schematic on the datasheet, the output (and also positive supply) is decoupled through a capacitor, and a very high gain inverting operational amplifier is used to rebias the signal to a virtual ground of +2.5 V. A first order anti-aliasing filter with a cutoff of 19.9 kHz is used, although the microphone itself has a cutoff of 20 kHz, making additional anti-aliasing redundant (but not necessarily unnecessary). The filter output goes directly into PORTA.0 of the microcontroller, the high impedance input for the first A/D channel.</p>
 </p>
 <h3 id="software">Software</h3>
 <h4 id="transmit">Transmit</h4>
@@ -206,8 +216,13 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 </div></center>
 <p>
 </p>
+<h4 id="client">Client-Side</h4>
+<p>
+Finally, an additional client program was written to make use of the acoustic modem to transmit data. Based on the <a href="http://en.wikipedia.org/wiki/OSI_model">OSI Model</a>, the acoustic data modem resides in the Physical layer. Therefore, in order to perform communications at a higher level, a small C++ class was written to implement the transport layer in order to provide quality of service for data transmission over acoustic modem. Using the serial interface provided by Window, formatted data is transmitted through the acoustic modem and received on the other end. Our client program organizes data to be transmitted into packets 6-bytes in length: one byte of header information, four bytes of payload information, and one byte of checksum, which was implemented as an 8-bit CRC. The choice of CRC was based on the way in which errors occurred: single bit errors were much less common than dropped bytes, shifted bytes, etc., so a more robust checksum was chosen to reduce the possibility of an error sneaking through. The transport layer functionality is very simple: a specific bit pattern (0x0A) represents the start of a packet. When the client receives a packet, it computes the CRC of the packet and compares it with what was received. If the checksums do not match, a request retransmission packet is send (header 0x0F, no data, no checksum). If the checksums do match, however, the packet is delivered as received to the calling program, and a successful reception packet is sent (header 0x3E, no data, no checksum). In the event that the transmitting station does not receive anything in response to a transmitted packet, it will attempt to resend the packet up to 10 times before giving up and passing a failure message to the calling program. Checksum invalid and success responses are not acknowledged by the transmitting station. It is understood that if either packet type is not received by the transmitting station within a response timeout period, a retransmission will occur anyway. The client software can be configured to reject two packets with the same CRC as failed acknowledgement, or it can accept both, depending on the appropriateness for an application (for instance, when transmitting binary data, two packets in order may match, but when transmitting text-only communications, two packets in order are very unlikely to match). This transport program was used to implement a simple chat program where two users may communicate via acoustic modem.
+</p>
 <h3 id="trial">Trial And Error</h3>
 <p>
+The majority of the trial and error in this project related to tuning the frequency detection algorithm. It is based on static thresholds that are related to the absolute amplitude of each signal. The parameter tuning was done by picking a threshold based on a MATLAB simulation (often using real data obtained using one of our many debug modes), and then pumping a lot of data through the modem and observing the error rates in detection. Our final threshold values were chosen to have very small error rates (no errors within 500+ characters of continuous transmit at approximately 30 bytes/second), although when transmitting closer to the theoretical throughput of the modem, more errors become apparent. Most circuit components were chosen based on the result of SPICE simulations of the circuits in question, but a few result-based substitutions on part values were made, most likely due to differences caused by unmodeled parts of the system (the actual speaker and microphone, which do not operate as pure resistive loads and perfect voltage sources, respectively).
 </p>
 
 <div class="bridge-section">
@@ -230,9 +245,10 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 <p></p>
 <p></p>
 <h3 id="st_conformity">Standards Conformity</h3>
-<p></p>
+<p>There are no standards for acoustic modems to conform to that we are aware of, and a survey of manufacturers' websites confirms that they do not list any standards to which they conform. If such standards exist outside our knowledge, it is probably not very important to follow them, as one of the largest manufacturers (<a href="http://www.benthos.com/">Teledyne Benthos</a>) does not list any conforming acoustic modem standards.</p>
 <h3 id="IP">IP Considerations</h3>
-<p></p>
+<p>All of the intellectual property relating to the AVR implementation should belong to the two of us, as we consciously did not consult reference implementations of acoustic modems provided by commercial manufacturers (if such references exist). The only sources of information that we used were either example circuits in the public domain (Wikipedia, etc.), the datasheets provided by part manufacturers, or resources provided on the ECE 476 website (code from our projects earlier in the semester). In implementing the client side software, we used an 8-bit CRC implementation obtained from the Quake4 SDK (link unavailable).</p>
+<p>We are open to the idea of the reuse of our processing techniques and any publishing opportunities that may arise. Our code and everything that we have a right to distribute (in the event that we have infringed upon a patent or copyright unknowingly) is released under the terms of the <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL, v3</a></p>
 <h3 id="ethical">Ethical Considerations</h3>
 <p></p>
 <h3 id="legal">Legal Considerations</h3>
@@ -262,11 +278,35 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 <tr class="row1"><td>Omnidirectional Electret Microphone</td><td>359-1029-ND</td><td>Digi-Key</td><td>$1.50</td><td>1</td></tr>
 <tr class="row2"><td><a href="http://www.nbb.cornell.edu/neurobio/land/PROJECTS/Protoboard476/index.html">Custom PC Board</a></td><td>N/A</td><td>Bruce Land</td><td>$4.00</td><td>1</td></tr>
 <tr class="row1"><td>Solder Board</td><td>N/A</td><td>476 Lab</td><td>$2.50</td><td>2</td></tr>
-<tr class="row2"><td></td><td></td><td></td><td></td><td></td></tr>
-<tr class="row1"><td></td><td></td><td></td><td></td><td></td></tr>
-<tr class="row2"><td></td><td></td><td></td><td></td><td></td></tr>
-<tr class="row1"><td></td><td></td><td></td><td></td><td></td></tr>
-<tr class="row2"><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="row2"><td>DIP Socket</td><td>N/A</td><td>476 Lab</td><td>$0.50</td><td>3</td></tr>
+<tr class="row1"><td>SOIC Carrier Board</td><td>N/A</td><td>476 Lab</td><td>$1.00</td><td>3</td></tr>
+<tr class="row2"><td>DB-9 Connector</td><td>N/A</td><td>476 Lab</td><td>$1.00</td><td>1</td></tr>
+<tr class="row1"><td>.1" Male Header Pins</td><td>N/A</td><td>476 Lab</td><td>$0.05</td><td>85</td></tr>
+<tr class="row2"><td>N-Channel MOSFET</td><td>IRFZ34E</td><td>International Rectifier</td><td>Free<sup>4</sup></td><td>2</td></tr>
+<tr class="row1"><td>NPN BJT</td><td>2N2222</td><td>ST Microelectronics</td><td>Free<sup>4</sup></td><td>2</td></tr>
+<tr class="row2"><td>10k Potentiometer</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>2</td></tr>
+<tr class="row1"><td>Power Supply (shared)</td><td>N/A</td><td>476 Lab</td><td>$5.00</td><td>1/2</td></tr>
+<tr class="row2"><td>1 uF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>7</td></tr>
+<tr class="row1"><td>0.1 uF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>6</td></tr>
+<tr class="row2"><td>22 pF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>2</td></tr>
+<tr class="row1"><td>1 nF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>3<sup>5</sup></td></tr>
+<tr class="row2"><td>2.2 nF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row1"><td>500 pF Capacitor</td><td>Any</td><td>CUAUV Lab</td><td>Free<sup>4</sup></td><td>3<sup>5</sup></td></tr>
+<tr class="row2"><td>20 MHz Crystal</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row1"><td>680 uF Capacitor</td><td>Any Electrolytic</td><td>CUAUV Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row2"><td>8 kOhm Resistor</td><td>Any</td><td>CUAUV Lab</td><td>Free<sup>4</sup></td><td>3<sup>5</sup></td></tr>
+<tr class="row1"><td>16 kOhm Resistor</td><td>Any</td><td>CUAUV Lab</td><td>Free<sup>4</sup></td><td>3<sup>5</sup></td></tr>
+<tr class="row2"><td>2.2 kOhm Resistor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row1"><td>1 MOhm Resistor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row2"><td>2 kOhm Resistor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row1"><td>10 kOhm Resistor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row2"><td>560 Ohm Resistor</td><td>Any</td><td>CUAUV Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row1"><td>300 Ohm Resistor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row2"><td>100 Ohm Resistor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row1"><td>Red LED</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row2"><td>Green LED</td><td>Any</td><td>CUAUV Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
+<tr class="row1"><td></td><td></td><td>Total (per board)</td><td>$35.78</td><td>60</td></tr>
+<tr class="row2"><td></td><td></td><td>Total (altogether)</td><td>$71.56</td><td>121</td></tr>
 </table>
 </center>
 </p>
@@ -275,6 +315,8 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 	<li><sup>1 - Donated by the CUAUV team, which has a stockpile of them but no longer uses the part in active designs.</sup></li>
 	<li><sup>2 - Obtained via free sample from the manufacturer, no NDA required.</sup></li>
 	<li><sup>3 - Three operational amplifiers in total are required. Two 4282s or a 4282 and a 4281 are sufficient to implement the circuit.</sup></li>
+	<li><sup>4 - These parts were already available in either the CUAUV Lab or the 476 Lab for free</sup></li>
+	<li><sup>5 - There was variation in these parts between the two boards. One board used the 16k/500pF combination and the other used 8k/1nF for its low pass filters</sup></li>
 </ul>
 </p>
 
@@ -319,6 +361,9 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 <h4> Other Online Resources </h4>
 <ul>
 	<li><a href="http://en.wikipedia.org/wiki/Window_function">Description of several window functions and their spectral properties</a></li>
+	<li><a href="http://www.benthos.com/">Teledyne Benthos</a></li>
+	<li><a href="http://en.wikipedia.org/wiki/OSI_model">OSI Model</a></li>
+	<li><a href="http://www.gnu.org/licenses/gpl.html">GNU GPL v3</a></li>
 </ul>
 <hr />
 
