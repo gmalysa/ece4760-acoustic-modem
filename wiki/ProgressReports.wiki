@@ -9,6 +9,10 @@ As things are completed, they will be listed here and categorized by week.
  * TWO FREQUENCIES! Simultaneously transmit and receive on two frequencies with independent state machines, etc. Need to add more frequencies (should be easy after setting parameters).
  * Also, implemented some channel equalization in the matlab script. Values chosen by experiment, but it helps deal with our filter not having a flat pass band.
  * Fixed the second unit's output amplifier. The current mirror was not producing enough current, leading to clipping. Differences in discrete transistors are crazy.
+ * Some final updates:
+ * Finalized microcontroller code, it works in both directions and is relatively error free for ASCII characters. For some reason anything with bit 8 set has a much higher error rate, but no time to investigate/fix.
+ * Wrote report.
+ * Implemented transport layer protocol handler for use in windows C++ programs to communicate over acoustic modem.
 
 == 4/22/10 - 4/28/10 ==
  * Managed to get real data dumps off the AVR with some sketchy serial code.
