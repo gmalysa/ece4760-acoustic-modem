@@ -1,13 +1,14 @@
 #include "StdAfx.h"
 #include "Sender.h"
 #include <iostream>
+#include <time.h>
 
 using namespace std;
 
 /**
  * Initialize the COM port given, set up timeouts, etc.
  */
-Sender::Sender(wchar_t* port, int baud_rate) : last_crc(0)
+Sender::Sender(wchar_t* port, int baud_rate) : last_crc(0), ignoreDuplicates(1)
 {
 	COMMTIMEOUTS timeouts;
 	commPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
@@ -24,6 +25,7 @@ Sender::Sender(wchar_t* port, int baud_rate) : last_crc(0)
 
 	responseEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	getResponseEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	ResetEvent(responseEvent);
 }
 
 /**
@@ -72,7 +74,7 @@ unsigned char *Sender::read() {
 			crc = result[5];
 			result[0] = successResponse;
 			this->write(result, 1, BYTE_DELAY);
-			if (crc != last_crc) {
+			if ((crc != last_crc) || !ignoreDuplicates) {
 				last_crc = crc;
 				result[5] = '\0';
 				i = 1;
@@ -90,12 +92,12 @@ unsigned char *Sender::read() {
 		}
 	}
 	else if (result[0] == resendHeader) {
-		WaitForSingleObject(getResponseEvent, INFINITE);
+//		WaitForSingleObject(getResponseEvent, INFINITE);
 		doResend = 1;
 		SetEvent(responseEvent);
 	}
 	else if (result[0] == successResponse) {
-		WaitForSingleObject(getResponseEvent, INFINITE);
+//		WaitForSingleObject(getResponseEvent, INFINITE);
 		doResend = 0;
 		SetEvent(responseEvent);
 	}
@@ -120,6 +122,10 @@ void Sender::send(const unsigned char *data, size_t length, unsigned int delay)
 	int retryCount = 0;
 	DWORD response;
 	unsigned char *output = (unsigned char *) calloc(padded_length, sizeof(unsigned char));
+	time_t start = time(NULL);
+	time_t sendTime;
+	int sendBytes = 0;
+	int sendRawBytes = 0;
 	
 	memcpy(output, data, length * sizeof(unsigned char));
 	block[0] = header;
@@ -130,20 +136,28 @@ void Sender::send(const unsigned char *data, size_t length, unsigned int delay)
 		this->write(block, 6, delay);
 
 		// Get response automatically in read thread, so wait for the signal!
-		ResetEvent(responseEvent);
-		SetEvent(getResponseEvent);
+//		SetEvent(getResponseEvent);
 		response = WaitForSingleObject(responseEvent, RESP_TIMEOUT);
-		ResetEvent(getResponseEvent);
+//		ResetEvent(getResponseEvent);
+		ResetEvent(responseEvent);
 		if (doResend || response != WAIT_OBJECT_0) {
 			i -= 4;
+			sendBytes -= 4;	// Cancel out the increment--these failed to send
 			if (retryCount++ > MAX_RETRIES) {
 				cout << "Retry count exceeded--part of your message may be dropped." << endl;
 				i += 4;
 			}
+		} else {
+			retryCount = 0;
 		}
+		sendRawBytes += 6;
+		sendBytes += 4;
 	}
 
+	sendTime = (time(NULL)-start);
+
 	free(output);
+	cout << "Time/Bytes/Raw Bytes" << sendTime << "/" << sendBytes << "/" << sendRawBytes << endl;
 }
 
 /**
