@@ -28,9 +28,8 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	DWORD tid;
 	Sender sender(argv[1], 2400);
-	sender.ignoreDuplicates = 0;
 	Sender s2(sender);
-	s2.ignoreDuplicates = 0;
+	s2.ignoreDuplicates = 1;
 
 	CreateThread(NULL, 0, &readThread, &s2, 0, &tid);
 	
@@ -42,7 +41,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	while(1) {
 		stringbuf s;
 		cin.get(s);
-		sender.send((const unsigned char *)s.str().append('\n').c_str(), s.str().length()+1, BYTE_DELAY);
+		sender.send((const unsigned char *)s.str().c_str(), s.str().length()+1, BYTE_DELAY);
 		cin.sync();
 		cin.clear();
 	}
