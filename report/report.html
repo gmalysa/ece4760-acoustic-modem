@@ -49,13 +49,7 @@
 <hr />
 
 <div id="wrap">
-
 <div id="content">
-	<div id="main">
-<center><div class="main-photo-large">
-	<img src="project_files/modem.jpg" width="510"/>
-	<p class="caption">Picture of Acoustic Modem</p>
-</div></center>
 <div class="bridge-section">
 <h2>Introduction</h2>
 <p>		
@@ -65,6 +59,11 @@ consists of a pair of such modems to operate as transmit/receive pairs and suppo
 it is a proof-of-concept experiment in encoding, decoding, and data transmission techniques that will be used in the following years by the CUAUV 
 team to design a system capable of communicating over some distance underwater.
 </p>
+<div id="main">
+<center><div class="main-photo-large">
+	<img src="images/IMG_1059.png" width="510"/>
+	<p class="caption">Picture of Acoustic Modem</p>
+</div></center>
 <h2 id="design">High Level Design</h2>
 <p><a href="#rationale">Rationale</a> | <a href="#math">Background Math</a> | <a href="#tradeoff">Design Tradeoffs</a> | <a href="#standards">Intellectual Property and Standards</a></p>
 <h3 id="rationale">Rationale</h3>
@@ -190,14 +189,18 @@ is included in the Atmega644 UART and so was already prepackaged and ready for u
 <p>
 The hardware for the acoustic modem is relatively simple. It can be broken into four sections: power management circuitry (1), Microcontroller circuitry (2), speaker driving circuitry (3), and microphone processing circuitry (4).
 <center><div class="main-photo-large">
-	<img src="real_board_picture_segments.png" alt="" width="510"/>
+	<img src="images/IMG_1060_marked_up.png" alt="" width="510"/>
 	<p class="caption">Actual Implemented Circuit Segmented by Functional Region</p>
 </div></center>
 <p><b>Power Management</b> - The power managment circuitry consists of an LM34T05 Linear Regulator, which accepts an input voltage of about 9-12 V and produces +5 V. It is capable of driving up to 1 Amp of current without dropping below +5 V, which is necessary to support the class A amplifier implementation used to drive the speaker.</p>
 <p><b>Microcontroller</b> - The microcontroller circuitry is all housed on the <a href="http://www.nbb.cornell.edu/neurobio/land/PROJECTS/Protoboard476/index.html">custom PC board</a> provided by Bruce Land. The schematic implemented on this custom PC board is reproduced in our schematic listing for completeness. </p>
 <p><b>Speaker Driving Circuitry</b> - An AD7801 D/A Converter is connected to PORT C of the Atmega644. It is driven in parallel with digital samples to be converted to an analog signal. The output of the DAC goes through a 2nd order passive low-pass filter with cutoff at 19.9 kHz to attenuate the high frequencies created by the edges on the DAC output. Next the analog signal is fed through an inverting amplifier with a potentiometer as the feedback loop, allowing us to modify the gain. This is important because the low resolution of the DAC makes it beneficial to synthesize a wave of as large amplitude as possible, but the actual speaker-driving amplifier is not rail-to-rail, so the signal itself must be less than 2.5 V in amplitude. Luckily, analog signals have infinite precision, so information is not lost (although SNR decreases a little bit) by applying less-than-unity gain through this operational amplifier. The output of the DAC is centered around a virtual ground of +2.5 V supplied by the MAX6325 reference, and this virtual ground is maintained up through the speaker driving circuitry.</p>
 <p>The speaker is driven with the operational amplifier's output buffered by a common-drain JFET stage followed by a common-collector BJT stage, biased by an active load implemented as an N-channel MOSFET current mirror. The reference current is implemented using a BJT connected by a potentiometer to VCC, allowing us to modify the load current after the circuit has been built, which helps adjust the parameters to account for variations in the discrete transistors used. Originally the op-amp drove the BJT CC stage directly, but when delivering high power near the positive rail, a strange type of instability occurred resulting in the synthesis of several waves in the MHz range. Adding the second voltage buffer to the op-amp output fixes the problem and delivers the wave to the speaker without significant distortion.</p>
-<p><b>Microphone Processing Circuitry</b> - The microphone used is an electret condenser type with a built-in voltage buffer JFET. Following the recommended schematic on the datasheet, the output (and also positive supply) is decoupled through a capacitor, and a very high gain inverting operational amplifier is used to rebias the signal to a virtual ground of +2.5 V. A first order anti-aliasing filter with a cutoff of 19.9 kHz is used, although the microphone itself has a cutoff of 20 kHz, making additional anti-aliasing redundant (but not necessarily unnecessary). The filter output goes directly into PORTA.0 of the microcontroller, the high impedance input for the first A/D channel.</p>
+<p><b>Microphone Processing Circuitry</b> - The microphone used is an electret condenser type with a built-in voltage buffer JFET. Following the recommended schematic on the datasheet, the output (and also positive supply) is decoupled through a capacitor, and a very high gain inverting operational amplifier is used to rebias the signal to a virtual ground of +2.5 V. A first order anti-aliasing filter with a cutoff of 19.9 kHz is used, although the microphone itself has a cutoff of 20 kHz, making additional anti-aliasing redundant (but not necessarily unnecessary). The filter output goes directly into PORTA.0 of the microcontroller, the high impedance input for the first A/D channel. In order to attempt to filter out human speech, most music, and most common disturbances that do not directly fall into our target pass band, the microphone processing circuitry implements a band pass filter. It is a narrow, active filter and therefore has a transfer function that is not easily describable in terms of traditional Bode poles and zeros (the pass band is not flat, the rolloff does not match that of a Butterworth filter). Its frequency response is also affected by the microphone, which is not modeled, so a closed form expression is unavailable. However, an approximation based on an ideal voltage source for the microphone was calculated using a SPICE circuit simulator.
+<center><div class="main-photo-largest">
+	<a href="transfer_function.png" target="_BLANK" class="image"><img src="transfer_function.png" alt="" width="630"/></a>
+	<p class="caption">Approximate Transfer Function of Microphone Circuit</p>
+</div></center>
 </p>
 <h3 id="software">Software</h3>
 <h4 id="transmit">Transmit</h4>
@@ -218,7 +221,7 @@ The hardware for the acoustic modem is relatively simple. It can be broken into 
 </p>
 <h4 id="client">Client-Side</h4>
 <p>
-Finally, an additional client program was written to make use of the acoustic modem to transmit data. Based on the <a href="http://en.wikipedia.org/wiki/OSI_model">OSI Model</a>, the acoustic data modem resides in the Physical layer. Therefore, in order to perform communications at a higher level, a small C++ class was written to implement the transport layer in order to provide quality of service for data transmission over acoustic modem. Using the serial interface provided by Window, formatted data is transmitted through the acoustic modem and received on the other end. Our client program organizes data to be transmitted into packets 6-bytes in length: one byte of header information, four bytes of payload information, and one byte of checksum, which was implemented as an 8-bit CRC. The choice of CRC was based on the way in which errors occurred: single bit errors were much less common than dropped bytes, shifted bytes, etc., so a more robust checksum was chosen to reduce the possibility of an error sneaking through. The transport layer functionality is very simple: a specific bit pattern (0x0A) represents the start of a packet. When the client receives a packet, it computes the CRC of the packet and compares it with what was received. If the checksums do not match, a request retransmission packet is send (header 0x0F, no data, no checksum). If the checksums do match, however, the packet is delivered as received to the calling program, and a successful reception packet is sent (header 0x3E, no data, no checksum). In the event that the transmitting station does not receive anything in response to a transmitted packet, it will attempt to resend the packet up to 10 times before giving up and passing a failure message to the calling program. Checksum invalid and success responses are not acknowledged by the transmitting station. It is understood that if either packet type is not received by the transmitting station within a response timeout period, a retransmission will occur anyway. The client software can be configured to reject two packets with the same CRC as failed acknowledgement, or it can accept both, depending on the appropriateness for an application (for instance, when transmitting binary data, two packets in order may match, but when transmitting text-only communications, two packets in order are very unlikely to match). This transport program was used to implement a simple chat program where two users may communicate via acoustic modem.
+Finally, an additional client program was written to make use of the acoustic modem to transmit data. Based on the <a href="http://en.wikipedia.org/wiki/OSI_model">OSI Model</a>, the acoustic data modem resides in the Physical layer. Therefore, in order to perform communications at a higher level, a small C++ class was written to implement the transport layer in order to provide quality of service for data transmission over acoustic modem. Using the serial interface provided by Window, formatted data is transmitted through the acoustic modem and received on the other end. Our client program organizes data to be transmitted into packets 6-bytes in length: one byte of header information, four bytes of payload information, and one byte of checksum, which was implemented as an 8-bit CRC. The choice of CRC was based on the way in which errors occurred: single bit errors were much less common than dropped bytes, shifted bytes, etc., so a more robust checksum was chosen to reduce the possibility of an error sneaking through. The transport layer functionality is very simple: a specific bit pattern (0x0A) represents the start of a packet. When the client receives a packet, it computes the CRC of the packet and compares it with what was received. If the checksums do not match, a request retransmission packet is send (header 0x0F, no data, no checksum). If the checksums do match, however, the packet is delivered as received to the calling program, and a successful reception packet is sent (header 0x3E, no data, no checksum). In the event that the transmitting station does not receive anything in response to a transmitted packet, it will attempt to resend the packet up to 10 times before giving up and passing a failure message to the calling program. Checksum invalid and success responses are not acknowledged by the transmitting station. It is understood that if either packet type is not received by the transmitting station within a response timeout period, a retransmission will occur anyway. The client software can be configured to reject the second of two packets with the same CRC as failed acknowledgement, or it can accept both, depending on the appropriateness for an application (for instance, when transmitting binary data, two packets in order may match, but when transmitting text-only communications, two packets in order are very unlikely to match). This transport program was used to implement a simple chat program where two users may communicate via acoustic modem.
 </p>
 <h3 id="trial">Trial And Error</h3>
 <p>
@@ -233,9 +236,10 @@ The majority of the trial and error in this project related to tuning the freque
 <h3 id="accuracy">Accuracy</h3>
 <p></p>
 <h3 id="safety">Safety Enforcement</h3>
-<p></p>
+<p>There are only two potential safety problems associated with our project. One is the volume of sound produced by the speaker, which could potentially harm a human if it is too loud. However, our speakers are physically limited to 83 dB at maximum rated power output (3 W), and we drive the speakers at approximately 1/2 W, which should make our actual sound intensity level much lower than 83 dB. This is well below the threshold of pain for human hearing and therefore not a safety hazard, although the sound can become annoying if repeated continuously in an enclosed space. The other safety hazard is the temperature of several components on the board. The linear regular must dissipate nearly 2 W continuosly in order to supply half an amp of current at 5 V, with a 9 V input. This causes it to heat up significantly, and it could cause a burn if a person were to touch the heatsink for more than a brief instant. Similarly, all four transistors in the speaker driving circuit are also extemely hot. The speaker circuitry dissipates a total of approximately 2.5 W, including the power used to drive the speaker itself. Because we do not have a box there is no way to prevent the user from touching one of the hot components, but the speaker mounts and the large output capacitor make it difficult to grab hold of these transistors.</p>
 <h3 id="interference">Interference and Accessibility</h3>
-<p>
+<p>Our project does not emit electromagnetic radiation of any sort, means it will not interfere with most other projects. If it is used near another project that relies on sound for its operation, it may experience some interference, but we restrict the output of our project to a very specific set of frequencies. Therefore, if the other project does not use 4.8 kHz, 6 kHz, or 7.2 kHz, it should not experience any kind of interference due to the operation of our acoustic modem. Our project itself is largely ignorant of other projects. Most human speech and loud music has no effect on its performance, but certain high energy bursts of sound, such as clapping, slamming doors, or screetching charis across the floor can cause the modem to trigger incorrectly once or twice.</p>
+<p>Our project is very easy to use. It requires only a serial terminal be open and connected to the device, or it can be used from within an application as an internal data transportation mechanism. It can use existing accessibility mechanisms built into an operating system, such as an onscreen keyboard or a text-to-speech reader, because they are adapted for use with general software that can produce or consume text. The only difficulty in using our project is that it is sensitive to the distance between the two endpoints, which can require some careful callibration when it is first set up.
 </p>
 		
 <div class="bridge-section">
@@ -243,16 +247,16 @@ The majority of the trial and error in this project related to tuning the freque
 <p><a href="#analysis">Analysis of Results</a> | <a href="#st_conformity">Standards Conformity</a> | <a href="#IP">IP Considerations</a> | <a href="#ethical">Ethical Considerations</a> | <a href="#legal">Legal Considerations</a></p>
 <h3 id="analysis">Analysis of Results</h3>
 <p></p>
-<p></p>
 <h3 id="st_conformity">Standards Conformity</h3>
 <p>There are no standards for acoustic modems to conform to that we are aware of, and a survey of manufacturers' websites confirms that they do not list any standards to which they conform. If such standards exist outside our knowledge, it is probably not very important to follow them, as one of the largest manufacturers (<a href="http://www.benthos.com/">Teledyne Benthos</a>) does not list any conforming acoustic modem standards.</p>
 <h3 id="IP">IP Considerations</h3>
 <p>All of the intellectual property relating to the AVR implementation should belong to the two of us, as we consciously did not consult reference implementations of acoustic modems provided by commercial manufacturers (if such references exist). The only sources of information that we used were either example circuits in the public domain (Wikipedia, etc.), the datasheets provided by part manufacturers, or resources provided on the ECE 476 website (code from our projects earlier in the semester). In implementing the client side software, we used an 8-bit CRC implementation obtained from the Quake4 SDK (link unavailable).</p>
 <p>We are open to the idea of the reuse of our processing techniques and any publishing opportunities that may arise. Our code and everything that we have a right to distribute (in the event that we have infringed upon a patent or copyright unknowingly) is released under the terms of the <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL, v3</a></p>
 <h3 id="ethical">Ethical Considerations</h3>
-<p></p>
+<p>During the completion of our project, we made an effort to comply with the <a href="http://www.ieee.org/about/ethics_code.html">IEEE code of ethics</a>. We accepted responsibility for the safety of use of our product, disclosing the potential ways in which it could harm a person. We discussed all of the details relating to the only outstanding safety hazard (the temperature of the transistors used). We avoided conflicts of interest by picking a project that is unrelated to previous commercial endeavors that we have been involved with, including previous and foreseeable future internships. We consider our involvement with CUAUV to not be a conflict of interest because the project is being completed specifically in conjunction with CUAUV and for the purpose of inreasing its knowledge base as a team. We were honest and reasonable in our claims of accuracy and results by comparing the results that our implementation was measured to have to the theoretical results that we calculated. We did not accept any bribes (nor were we offered any). We sought assistance, when appropriate, from people more knowledgeable than ourselves, and we answered questions for other groups and offered advice on tasks we had already completed, suggesting things that we had learned through experimentation. We did not discriminate against any people for any reason, and we did not injure anyone for any reason, through action or inaction.
+</p>
 <h3 id="legal">Legal Considerations</h3>
-<p></p>
+<p>There should be no legal considerations with the operation of our acoustic modem. The speakers used are incapable of producing sound above 83 dB when driven at full power (3 W). With our drive power (<1/2 W), we expect to be comfortably below the maximum output. There are no FCC guidelines concerning the use of sound as a data transmission medium, and the overlap between our frequency range and that of human speech likely means that it cannot be regulated. The city of Ithaca's noise regulation ordinance is unclear at best on what types of absolute sounds may be produced, but as our acoustic modem does not interfere with nearby human speech and is most applicable in an industrial environment, its operation should not be in violation of any noise ordinances unless very explicitly and purposely used to annoy a particular person.</p>
 
 <div class="bridge-section">
 <h2 id="appendix">Appendix</h2> 
@@ -263,7 +267,12 @@ The majority of the trial and error in this project related to tuning the freque
 <pre style="font-size: 1.5em;">svn checkout http://ece4760-acoustic-modem.googlecode.com/svn/trunk/ ece4760-acoustic-modem-read-only</pre>
 
 <h3 id="schematics">Schematics</h3>
-
+<p>Click on the schematic for a much larger version where all of the details can be seen.
+<center><div class="main-photo-largest">
+	<a href="schematic.png" class="image" target="_BLANK"><img src="schematic.png" alt="" width="630"/></a>
+	<p class="caption">Complete System Schematic</p>
+</div></center>
+</p>
 <h3 id="parts">Parts List</h3>
 <p>Parts listed are per board. Two such boards were constructed to complete a transmit/receive pair.
 <center>
@@ -284,8 +293,8 @@ The majority of the trial and error in this project related to tuning the freque
 <tr class="row1"><td>.1" Male Header Pins</td><td>N/A</td><td>476 Lab</td><td>$0.05</td><td>85</td></tr>
 <tr class="row2"><td>N-Channel MOSFET</td><td>IRFZ34E</td><td>International Rectifier</td><td>Free<sup>4</sup></td><td>2</td></tr>
 <tr class="row1"><td>NPN BJT</td><td>2N2222</td><td>ST Microelectronics</td><td>Free<sup>4</sup></td><td>2</td></tr>
-<tr class="row2"><td>10k Potentiometer</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>2</td></tr>
-<tr class="row1"><td>Power Supply (shared)</td><td>N/A</td><td>476 Lab</td><td>$5.00</td><td>1/2</td></tr>
+<tr class="row2"><td>N-Channel JFET</td><td>2N5457</td><td>Fairchild Semiconductor</td><td>Free<sup>4</sup></td><td>2</td></tr>
+<tr class="row1"><td>10k Potentiometer</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>2</td></tr>
 <tr class="row2"><td>1 uF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>7</td></tr>
 <tr class="row1"><td>0.1 uF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>6</td></tr>
 <tr class="row2"><td>22 pF Capacitor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>2</td></tr>
@@ -305,8 +314,9 @@ The majority of the trial and error in this project related to tuning the freque
 <tr class="row2"><td>100 Ohm Resistor</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
 <tr class="row1"><td>Red LED</td><td>Any</td><td>476 Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
 <tr class="row2"><td>Green LED</td><td>Any</td><td>CUAUV Lab</td><td>Free<sup>4</sup></td><td>1</td></tr>
-<tr class="row1"><td></td><td></td><td>Total (per board)</td><td>$35.78</td><td>60</td></tr>
-<tr class="row2"><td></td><td></td><td>Total (altogether)</td><td>$71.56</td><td>121</td></tr>
+<tr class="row1"><td>Power Supply (shared)</td><td>N/A</td><td>476 Lab</td><td>$5.00</td><td>1/2</td></tr>
+<tr class="row2"><td></td><td></td><td>Total (per board)</td><td>$35.78</td><td>60</td></tr>
+<tr class="row1"><td></td><td></td><td>Total (altogether)</td><td>$71.56</td><td>121</td></tr>
 </table>
 </center>
 </p>
@@ -322,6 +332,9 @@ The majority of the trial and error in this project related to tuning the freque
 
 <h3 id="task">Task Division</h3>
 <h4>Greg Malysa</h4>
+<center><div class="main-photo-large">
+	<img src="images/IMG_1073.png" alt="" height="382"/>
+</div></center>
 <ul>
 	<li>Hardware Design</li>
 	<li>Hardware Implementation</li>
@@ -332,6 +345,9 @@ The majority of the trial and error in this project related to tuning the freque
 	<li>Website</li>
 </ul> 
 <h4>Arseney Romanenko</h4>
+<center><div class="main-photo-large">
+	<img src="images/IMG_1075.png" alt="" width="510"/>
+</div></center>
 <ul>
 	<li>Software Implementation</li>
 	<li>DSP Algorithm Design</li>
@@ -341,8 +357,8 @@ The majority of the trial and error in this project related to tuning the freque
 	<li>Website</li>
 </ul>
 <h3 id="acknowledgements">Acknowledgements</h3>
-<p>
-<u><i>TODO.</i></u>
+<p>We would like to thank Bruce Land and the 476 TAs for keeping long lab hours and helping us with our problems. We would also like to thank the CUAUV team for allowing us the use of team resources to complete our project. We would also like to thank Analog Devices, Maxim IC, and Atmel for donating parts (either to us or to 476 as a class) that made our project possible.</p>
+<p>We would like to acknowledge Saurav Bhatia, with whom we consulted a few times about ideas we had for DSP algorithms. We would like to acknowledge Kirill Kalinichev and Emily Lee, from whose project we took the website template to modify. Also, we would like to acknowledge Kevin Fuhr and Chris Peratrovich who fabricated the mounting blocks for our speaker from leftover ABS stock.
 </p>
 <h3 id="reference">References</h3>
 <h4> Datasheets </h4>
