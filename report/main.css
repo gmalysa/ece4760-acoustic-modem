@@ -1497,14 +1497,14 @@ tr {
 }
 
 td {
-	padding: 15px 15px 15px 15px;
+	padding: 10px 10px 10px 10px;
 	border-bottom: 1px solid #fff;
 	border-right: 1px solid #aaa;
 	text-align: right;
 }
 
 th {
-	padding: 15px 15px 15px 15px;
+	padding: 10px 10px 10px 10px;
 	font-weight: bold;
 	text-align: left;
 	color: #fff;
