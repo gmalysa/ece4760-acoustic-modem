@@ -2,9 +2,10 @@
 
 #include "stdafx.h"
 #include <string>
+#include <time.h>
 
-#define BYTE_DELAY 20
-#define RESP_TIMEOUT 500
+#define BYTE_DELAY 16
+#define RESP_TIMEOUT 100
 #define MAX_RETRIES 10
 
 extern int doResend;
@@ -15,6 +16,8 @@ public:
 	static const unsigned char header = 0x0A;
 	static const unsigned char resendHeader = 0x0F;
 	static const unsigned char successResponse = 0x3E;
+
+	int ignoreDuplicates;
 
 	Sender(wchar_t* port, int baud_rate);
 	Sender(const Sender &s);

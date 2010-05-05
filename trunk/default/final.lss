@@ -13,19 +13,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   4 .debug_pubnames 0000035b  00000000  00000000  00005b3e  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   00002512  00000000  00000000  00005e99  2**0
+  5 .debug_info   000024fc  00000000  00000000  00005e99  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 000012e3  00000000  00000000  000083ab  2**0
+  6 .debug_abbrev 000012e3  00000000  00000000  00008395  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   000016a1  00000000  00000000  0000968e  2**0
+  7 .debug_line   000016a1  00000000  00000000  00009678  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  000001f0  00000000  00000000  0000ad30  2**2
+  8 .debug_frame  000001f0  00000000  00000000  0000ad1c  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00000672  00000000  00000000  0000af20  2**0
+  9 .debug_str    00000664  00000000  00000000  0000af0c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    00000b09  00000000  00000000  0000b592  2**0
+ 10 .debug_loc    00000b09  00000000  00000000  0000b570  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000050  00000000  00000000  0000c09b  2**0
+ 11 .debug_ranges 00000050  00000000  00000000  0000c079  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -1436,8 +1436,6 @@ void find_freq(struct recv_param_t* this_param) {
 	int8_t input_sample = 0;
 	int32_t sin_squared=0, cos_squared=0, sum_squares = 0, shift_sum_squares = 0, analyze_output = 0;
 	lfix pulse_width = 0, i = 0;
-	uint8_t shifti = 0;
-	uint8_t shifte = 0;
 	uint8_t x = fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_3_8phase);
     424a:	8a a1       	ldd	r24, Y+34	; 0x22
     424c:	9b a1       	ldd	r25, Y+35	; 0x23

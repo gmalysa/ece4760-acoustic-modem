@@ -20,8 +20,8 @@ dt = -1000;
 % input(offset+64:offset+63+64) = data;
 % input(offset+64+64+64:offset+63+64+64+64) = data;
 
-COMs = 'COM9';
-COMr = 'COM12';
+COMs = 'COM8';
+COMr = 'COM9';
 bauds = 2400;
 baudr = 230400;
 
@@ -55,7 +55,7 @@ catch exception
     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
     fopen(rserial);
 end
-fprintf(sserial, 'ÿ');
+fprintf(sserial, 'af');
 input = fread(rserial, 1023, 'int8');
 
 fclose(rserial);
@@ -192,12 +192,12 @@ while (n < length(input))
     
     if (samples == buflen)
         subplot(2, 1, 1);
-        line([cIndex cIndex], [-400 400]);
+        %line([cIndex cIndex], [-400 400]);
         samples = 0;
         if (start > 0)
             if mag > thresh
                 subplot(2, 1, 1);
-                line([sIndex sIndex], [-200 200]);
+                %line([sIndex sIndex], [-200 200]);
                 detected = 1;
             end
 %             rc = zeros(1, buflen);
@@ -241,11 +241,11 @@ end
 %plot(ic, rc, 'g');
 subplot(2, 1, 1);
 plot(input, 'b');
-line([323, 323], [-600 600]);
+%line([323, 323], [-600 600]);
 subplot(2, 1, 2);
 hold on;
-plot(ic, mcs, 'k');
-plot(im, mmn, 'r');
-plot((ic + im) / 2, (mcs+ mmn)./2, 'g');
+% plot(ic, mcs, 'k');
+% plot(im, mmn, 'r');
+plot((ic + im) / 2, (mcs+ mmn)./2, 'k', 'LineWidth', 2);
 plot([1:length(input)], 0, 'k');
 %plot(is, rs, 'r');

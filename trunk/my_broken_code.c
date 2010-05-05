@@ -203,8 +203,6 @@ void find_freq(struct recv_param_t* this_param) {
 	int8_t input_sample = 0;
 	int32_t sin_squared=0, cos_squared=0, sum_squares = 0, shift_sum_squares = 0, analyze_output = 0;
 	lfix pulse_width = 0, i = 0;
-	uint8_t shifti = 0;
-	uint8_t shifte = 0;
 	uint8_t x = fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_3_8phase);
 	
 	if((x <= public_input_buffer_position && public_input_buffer_position - x <= 20) ||
