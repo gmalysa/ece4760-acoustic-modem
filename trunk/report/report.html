@@ -62,7 +62,6 @@ team to design a system capable of communicating over some distance underwater.
 <div id="main">
 <center><div class="main-photo-large">
 	<img src="images/IMG_1059.png" width="510"/>
-	<p class="caption">Picture of Acoustic Modem</p>
 </div></center>
 <h2 id="design">High Level Design</h2>
 <p><a href="#rationale">Rationale</a> | <a href="#math">Background Math</a> | <a href="#tradeoff">Design Tradeoffs</a> | <a href="#standards">Intellectual Property and Standards</a></p>
@@ -227,10 +226,16 @@ The hardware for the acoustic modem is relatively simple. It can be broken into 
 </div></center>
 <br/>
 <center><div class="main-photo-largest">
-	<a class="image" href="sample_mag.png" target="_BLANK"><img src="sample_mag.png" alt="" width="630"/></a>
+	<img src="sample_mag.png" alt="" width="630"/>
 	<p class="caption">The corresponding final magnitude for the raw data above, resampled at 6.0 kHz<br/>Here, the character <span class="code">'a' (0b01100010)</span> with the preceding start bit can be seen</p>
 </div></center>
-<p>
+<p>As seen above, the final magnitude is representative of the bitpattern received. To detect the peaks, we first apply a manually-tuned per-frequency threshold to the magnitude curve. We tried to choose a threshold that included multiple samples from the peaks of interest above it while keeping noise from other frequencies below it. To begin detection, we search for a start bit. The stop and start bits guarantee that there will be a 0-to-1 transition no matter how dense the data is being sent. To find the start bit, we wait for the magnitude to cross above the threshold. If the magnitude stays above the threshold for a preset time (about 40 samples) or drops below the threshold after a certain time, we move to a <span class="code">start</span> state and prepare to detect subsequent bits. We also align a frame pointer to the end of the start bit so we can track where a frame begins and ends and therefore where to place a bit once we detect it. We are able to do this because the frames are of know size (64 samples). Suppose we set a threshold of 60000 for the sample magnitude above:
+</p>
+<center><div class="main-photo-largest">
+	<img src="sample_mag_framed.png" alt="" width="630"/>
+	<p class="caption">The final magnitude above, after thresholding and detecting the start bit<br/><i>The dashed line represents the threshold<br/>The arrow points to the time when the start bit was detected<br/>The green lines represent the predicted frame divisions after having seen the start bit</i></p>
+</div></center>
+<p>Once we are in the <span class="code">start</span> state, we perform similar detection on subsequent bits. Once the magnitude crosses the threshold, we wait until magnitude falls below the threshold again. If the endpoint happens too soon after the startpoint, the peak is probably a false positive (e.g. a narrow peak that briefly crossed above the threshold) so we reject it. Once we have the start and end points of the peak, we average their positions in time to find the center of the peak. The last step is to find which frame the center of the peak goes into; this is accomplished by a simple division by 64. We can also detect a peak that spans multiple frames; this can occur if the magnitude does not drop below the threshold between frames. If the peak spans more than one frame, we mark all the frames it spans as detected. At this point, we can OR a bit at the position of the frame(s) with the output character to build up our output. The <span class="code">start</span> state ends when we have passed the last frame; at this point, we reset all of our variables and begin looking for the next start bit.
 </p>
 <h4 id="client">Client-Side</h4>
 <p>
@@ -266,8 +271,8 @@ The majority of the trial and error in this project related to tuning the freque
 <h3 id="safety">Safety Enforcement</h3>
 <p>There are only two potential safety problems associated with our project. One is the volume of sound produced by the speaker, which could potentially harm a human if it is too loud. However, our speakers are physically limited to 83 dB at maximum rated power output (3 W), and we drive the speakers at approximately 1/2 W, which should make our actual sound intensity level much lower than 83 dB. This is well below the threshold of pain for human hearing and therefore not a safety hazard, although the sound can become annoying if repeated continuously in an enclosed space. The other safety hazard is the temperature of several components on the board. The linear regular must dissipate nearly 2 W continuosly in order to supply half an amp of current at 5 V, with a 9 V input. This causes it to heat up significantly, and it could cause a burn if a person were to touch the heatsink for more than a brief instant. Similarly, all four transistors in the speaker driving circuit are also extemely hot. The speaker circuitry dissipates a total of approximately 2.5 W, including the power used to drive the speaker itself. Because we do not have a box there is no way to prevent the user from touching one of the hot components, but the speaker mounts and the large output capacitor make it difficult to grab hold of these transistors.</p>
 <h3 id="interference">Interference and Accessibility</h3>
-<p>Our project does not emit electromagnetic radiation of any sort, means it will not interfere with most other projects. If it is used near another project that relies on sound for its operation, it may experience some interference, but we restrict the output of our project to a very specific set of frequencies. Therefore, if the other project does not use 4.8 kHz, 6 kHz, or 7.2 kHz, it should not experience any kind of interference due to the operation of our acoustic modem. Our project itself is largely ignorant of other projects. Most human speech and loud music has no effect on its performance, but certain high energy bursts of sound, such as clapping, slamming doors, or screetching charis across the floor can cause the modem to trigger incorrectly once or twice.</p>
-<p>Our project is very easy to use. It requires only a serial terminal be open and connected to the device, or it can be used from within an application as an internal data transportation mechanism. It can use existing accessibility mechanisms built into an operating system, such as an onscreen keyboard or a text-to-speech reader, because they are adapted for use with general software that can produce or consume text. The only difficulty in using our project is that it is sensitive to the distance between the two endpoints, which can require some careful callibration when it is first set up.
+<p>Our project does not emit electromagnetic radiation of any sort, meaning it will not interfere with most other projects. If it is used near another project that relies on sound for its operation, it may experience some interference, but we restrict the output of our project to a very specific set of frequencies. Therefore, if the other project does not use 4.8 kHz, 6 kHz, or 7.2 kHz, it should not experience any kind of interference due to the operation of our acoustic modem. Our project itself is largely ignorant of other projects. Most human speech and loud music has no effect on its performance, but certain high energy bursts of sound, such as clapping, slamming doors, or screetching charis across the floor can cause the modem to trigger incorrectly once or twice.</p>
+<p>Our project is very easy to use. It requires only a serial terminal be open and connected to the device, or it can be used from within an application as an internal data transportation mechanism. It can use existing accessibility mechanisms built into an operating system, such as an onscreen keyboard or a text-to-speech reader, because they are adapted for use with general software that can produce or consume text. The only difficulty in using our project is that it is sensitive to the distance between the two endpoints, which can require some careful calibration when it is first set up.
 </p>
 		
 <div class="bridge-section">
@@ -291,7 +296,7 @@ The majority of the trial and error in this project related to tuning the freque
 
 <div class="bridge-section">
 <h2 id="appendix">Appendix</h2> 
-<p><a href="#code">Source Code</a> | <a href="#schematics">Schematics</a> | <a href="#parts">Parts List</a> | <a href="#task">Task Division</a> | <a href="#reference">References</a> | <a href="#acknowledgements">Acknowledgements</a></p>
+<p><a href="#code">Source Code</a> | <a href="#schematics">Schematics</a> | <a href="#parts">Parts List</a> | <a href="#task">Task Division</a> |  <a href="#acknowledgements">Acknowledgements</a> | <a href="#reference">References</a></p> 
 <h3 id="code">Source Code</h3>
 <p>The most recent version of our source code is available under the GNU GPL v3. It can be obtained from our
 <a href="https://code.google.com/p/ece4760-acoustic-modem">Google Code project</a> via Subversion:</p>
