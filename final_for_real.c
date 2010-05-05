@@ -46,7 +46,7 @@ uint8_t bitmasks[8] = {0b00000001, 0b00000010, 0b00000100, 0b00001000, 0b0001000
 uint8_t freqCache[64];
 
 // Debug variables
-//#define DEBUG_DUMP
+#define DEBUG_DUMP
 //#define DEBUG_THRESH
 //#define DEBUG_RS_DUMP
 #if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
@@ -70,11 +70,11 @@ uint8_t freqCache[64];
 #define RISING_EDGE 1
 #define PEAK 3
 #define FALLING_EDGE 4
-#define NUM_FREQS 2
+#define NUM_FREQS 3
 #define RESAMPLE_BUFFER_MAX_SIZE 1024
-#define DT 100
-float freqs[] = {8400., 6000., 8400.};
-int16_t thresholds[] = {600, 750, 120};
+#define DT 75
+float freqs[] = {7200., 6000., 4800.};
+int16_t thresholds[] = {275, 225, 225};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -186,12 +186,12 @@ int main() {
 			while(output_buffer_status[next_buffer] != IDLE) {;}
 			output_buffer[next_buffer] = UDR0;
 			output_buffer_status[next_buffer] = START_BIT;
-			if (next_buffer == 2)
+			if (next_buffer == 0)
 				next_buffer = 1;
-//			else if (next_buffer == 1)
-//				next_buffer = 2;
-			else
+			else if (next_buffer == 1)
 				next_buffer = 2;
+			else
+				next_buffer = 0;
 			//next_buffer = (next_buffer + 1) & 0x1;
 		}
 		for(i=0; i<NUM_FREQS; ++i) {
@@ -270,7 +270,7 @@ void find_freq(struct recv_param_t* this_param) {
 		this_param->fcos_acc += input_sample;
 		this_param->resample_buffer_fcos[this_param->resample_buffer_position] = input_sample;
 
-		analyze_output = abs(this_param->sin_acc) + abs(this_param->cos_acc) + abs(this_param->fsin_acc) + abs(this_param->fcos_acc);
+		analyze_output = (abs(this_param->sin_acc) + abs(this_param->cos_acc) + abs(this_param->fsin_acc) + abs(this_param->fcos_acc)) >> 1;
 
 		if (this_param->start == 0) {
 			switch(this_param->trigger) {
@@ -285,7 +285,7 @@ void find_freq(struct recv_param_t* this_param) {
 						this_param->trigger = NO_EDGE;
 					break;
 				case PEAK:
-					if ((this_param->prev_mag - analyze_output) > -20) {
+					if (((this_param->prev_mag - analyze_output) > -DT) && analyze_output >= this_param->thresh) {
 						if (this_param->start == 0) {
 							#ifdef DEBUG_DUMP
 								if (offset_timer == 0) {

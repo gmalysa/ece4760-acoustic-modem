@@ -8,7 +8,7 @@ hold on;
 fs = 40000;
 f = 4800;
 f2 = 6000;
-f3 = 7200;
+f3 = 4800;
 buflen = ceil(64. / (fs/f));
 thresh = 35000;
 dt = -1000;
@@ -55,8 +55,8 @@ catch exception
     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '', 'Timeout', 4);
     fopen(rserial);
 end
-fprintf(sserial, 'af');
-%input = fread(rserial, 1023, 'int8');
+fprintf(sserial, 'ÿ');
+input = fread(rserial, 1023, 'int8');
 
 fclose(rserial);
 delete(rserial);
@@ -149,7 +149,7 @@ while (n < length(input))
     
     % Attempt detection
     trigger = 0;
-    mag = mean(csum^2 + ssum^2, msum^2 + nsum^2);
+    mag = mean([csum^2 + ssum^2, msum^2 + nsum^2]);
     if mag > thresh
 %         if abs(csum) > abs(ssum)
 %             subplot(2, 1, 1);

@@ -72,7 +72,7 @@ uint8_t freqCache[64];
 #define NUM_FREQS 3
 #define RESAMPLE_BUFFER_MAX_SIZE 1024
 float freqs[] = {7200., 6000., 4800.};
-int32_t thresholds[] = {25000, 18000, 18000};
+int32_t thresholds[] = {25000, 19000, 21000};
 struct recv_param_t {
 	int8_t *resample_buffer_sin;
 	int8_t *resample_buffer_cos;
@@ -203,6 +203,8 @@ void find_freq(struct recv_param_t* this_param) {
 	int8_t input_sample = 0;
 	int32_t sin_squared=0, cos_squared=0, sum_squares = 0, shift_sum_squares = 0, analyze_output = 0;
 	lfix pulse_width = 0, i = 0;
+	uint8_t shifti = 0;
+	uint8_t shifte = 0;
 	uint8_t x = fix2int(this_param->input_buffer_resample_position + this_param->input_buffer_3_8phase);
 	
 	if((x <= public_input_buffer_position && public_input_buffer_position - x <= 20) ||
@@ -288,10 +290,27 @@ void find_freq(struct recv_param_t* this_param) {
 				else {
 					this_param->frame_position += fix2lfix(this_param->input_buffer_increment);
 				}
+				if(this_param->prev_frame_position) {
+					if(this_param->frame_position > int2lfix(45)) {
+						#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
+							if(offset_timer == 0) {
+								offset_timer = 1;
+							}
+						#endif
+						this_param->start = 1;
+						this_param->output_char = 0;
+						this_param->input_buffer_resample_position += this_param->input_buffer_increment;
+						this_param->frame_position = 0;//int2lfix(32);
+						this_param->prev_frame_position = 0;
+						clear(this_param);
+						PORTD &= ~_BV(PB3);
+						return;						
+					}
+				}
 			}
 			else {	// Below the threshold
 				if(this_param->prev_frame_position) {
-					if(this_param->frame_position > int2lfix(28)) {
+					if(this_param->frame_position > int2lfix(40)) {
 						#if defined(DEBUG_DUMP) || defined(DEBUG_RS_DUMP)
 							if(offset_timer == 0) {
 								offset_timer = 1;

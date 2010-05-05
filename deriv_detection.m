@@ -13,7 +13,7 @@ hold on;
 fs = 40000;
 f = 4800;
 buflen = ceil(64. / (fs/f));
-thresh = 200;
+thresh = 225;
 dt = 50;
 offset = 69;
 
@@ -69,8 +69,8 @@ catch exception
     rserial = serial(COMr, 'BaudRate', baudr, 'InputBufferSize', 1024, 'Terminator', '');
     fopen(rserial);
 end
-fprintf(sserial, 's');
-% input = fread(rserial, 1023, 'int8');
+fprintf(sserial, 'sf');
+input = fread(rserial, 1023, 'int8');
 fclose(rserial);
 delete(rserial);
 fclose(sserial);
@@ -148,7 +148,7 @@ while (n < length(input))
     
     % Calculate our signal magnitude
 %     mag = max([abs(csum), abs(ssum), abs(msum)]);
-    mag = sum([abs(csum), abs(ssum), abs(msum), abs(nsum)]) / 2;
+    mag = sum([csum^2, ssum^2, msum^2, nsum^2]) / 2;
 %     mag = sum([abs(csum), abs(ssum)]);
 %     shift_mag = max(abs(msum), abs(nsum));
     mcs(l) = mag;
@@ -181,7 +181,7 @@ while (n < length(input))
                     plot(j, 20, 'rx');
                 end
             case PEAK
-                if prev_mag - mag > -dt
+                if prev_mag - mag > -dt && mag >= thresh
                     trigger = FALLING_EDGE;
                 elseif (mag < thresh)
                     trigger = NO_EDGE;
@@ -220,10 +220,10 @@ while (n < length(input))
         % Advance input parser state machine
         if (start > 0)
             start = start - 1;
-            j = j - (step * buflen - 64) + step/2;
-            k = k - (step * buflen - 64) + step/2;
-            m = m - (step * buflen - 64) + step/2;
-            n = n - (step * buflen - 64) + step/2;
+            j = j - (step * buflen - 64);% + step/2;
+            k = k - (step * buflen - 64);% + step/2;
+            m = m - (step * buflen - 64);% + step/2;
+            n = n - (step * buflen - 64);% + step/2;
             if (start == 0)
                 rs = zeros(1, buflen);
                 rc = zeros(1, buflen);

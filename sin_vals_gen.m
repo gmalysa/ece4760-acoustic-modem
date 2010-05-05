@@ -38,4 +38,4 @@ end
 
 data(data == 256) = 255;
 
-csvwrite('sin_vals.c', data, 5, 0);
+%csvwrite('sin_vals.c', data, 5, 0);
